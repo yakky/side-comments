@@ -26,6 +26,7 @@ function SideComments( el, currentUser, existingComments, options ) {
   this.existingComments = _.cloneDeep(existingComments) || [];
   this.sections = [];
   this.activeSection = null;
+  options = options || {};
   if (options.locale) {
     trans.help(t);
     var locale = options.locale || 'en';
