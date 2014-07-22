@@ -1,6 +1,5 @@
 {
-  "Post": "Post",
-  "Cancel": "Cancel",
-  "Leave a comment": "Leave a comment",
-  "Leave a comment...": "Leave a comment..."
+  "side-comments.post": "Post",
+  "side-comments.cancel": "Cancel",
+  "side-comments.leave-a-comment": "Leave a comment",
 }

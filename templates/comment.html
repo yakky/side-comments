@@ -15,6 +15,6 @@
     <%= comment.comment %>
   </p>
   <% if (currentUser && comment.authorId === currentUser.id){ %>
-  <a href="#" class="action-link delete"><%= t('Delete') %></a>
+  <a href="#" class="action-link delete"><%= t('side-comments.delete') %></a>
   <% } %>
 </li>

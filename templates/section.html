@@ -10,7 +10,7 @@
       <% }) %>
     </ul>
 
-    <a href="#" class="add-comment"><%= t('Leave a comment') %></a>
+    <a href="#" class="add-comment"><%= t('side-comments.leave-a-comment') %></a>
 
     <% if (currentUser){ %>
       <div class="comment-form">
@@ -20,10 +20,10 @@
         <p class="author-name">
           <%= currentUser.name %>
         </p>
-        <input type="text" class="comment-box right-of-avatar" placeholder="<%= t('Leave a comment...') %>">
+        <input type="text" class="comment-box right-of-avatar" placeholder="<%= t('side-comments.leave-a-comment') %>...">
         <div class="actions right-of-avatar">
-          <a href="#" class="action-link post"><%= t('Post') %></a>
-          <a href="#" class="action-link cancel"><%= t('Cancel') %></a>
+          <a href="#" class="action-link post"><%= t('side-comments.post') %></a>
+          <a href="#" class="action-link cancel"><%= t('side-comments.cancel') %></a>
         </div>
       </div>
     <% } %>

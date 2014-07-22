@@ -1,6 +1,5 @@
 {
-  "Post": "Enviar",
-  "Cancel": "Cancelar",
-  "Leave a comment": "Deja un comentario",
-  "Leave a comment...": "Deja un comentario..."
+  "side-comments.post": "Enviar",
+  "side-comments.cancel": "Cancelar",
+  "side-comments.leave-a-comment": "Deja un comentario",
 }
