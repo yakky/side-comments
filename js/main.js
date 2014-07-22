@@ -1,6 +1,8 @@
 var _ = require('./vendor/lodash-custom.js');
 var Section = require('./section.js');
 var Emitter = require('emitter');
+var t = require('t');
+var trans = require('../trans');
 
 /**
  * Creates a new SideComments instance.
@@ -15,7 +17,7 @@ var Emitter = require('emitter');
  * 
  * TODO: **GIVE EXAMPLE OF STRUCTURE HERE***
  */
-function SideComments( el, currentUser, existingComments ) {
+function SideComments( el, currentUser, existingComments, options ) {
   this.$el = $(el);
   this.$body = $('body');
   this.eventPipe = new Emitter;
@@ -24,6 +26,9 @@ function SideComments( el, currentUser, existingComments ) {
   this.existingComments = _.cloneDeep(existingComments) || [];
   this.sections = [];
   this.activeSection = null;
+  trans.help(t);
+  var locale = options.locale || 'en';
+  t.lang(locale);
   
   // Event bindings
   this.eventPipe.on('showComments', _.bind(this.showComments, this));
