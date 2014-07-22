@@ -2,13 +2,19 @@
   "name": "side-comments",
   "repo": "aroc/side-comments",
   "dependencies": {
-    "component/emitter": "*"
+    "component/emitter": "*",
+    "component/t": "*"
   },
   "scripts": [
     "js/main.js",
     "js/section.js",
     "js/vendor/lodash-custom.js",
-    "js/helpers/mobile-check.js"
+    "js/helpers/mobile-check.js",
+    "trans/index.js"
+  ],
+  "json": [
+    "trans/en.json",
+    "trans/es.json"
   ],
   "main": "js/main.js",
   "templates": [
