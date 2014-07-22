@@ -251,7 +251,8 @@ Section.prototype.render = function() {
 	  comments: this.comments,
 	  sectionClasses: this.sectionClasses(),
 	  currentUser: this.currentUser,
-    t: t
+    t: t,
+    voting: this.voting
 	})).appendTo(this.$el);
 };
 
