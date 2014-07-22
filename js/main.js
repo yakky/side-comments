@@ -35,6 +35,7 @@ function SideComments( el, currentUser, existingComments, options ) {
     t[options.trans.locale] = options.trans.translations;
     t.lang(options.trans.locale);
   }
+  this.voting = options.voting || false;
 
   // Event bindings
   this.eventPipe.on('showComments', _.bind(this.showComments, this));
@@ -60,7 +61,7 @@ SideComments.prototype.initialize = function( existingComments ) {
     var sectionId = $section.data('section-id').toString();
     var sectionComments = _.find(this.existingComments, { sectionId: sectionId });
 
-    this.sections.push(new Section(this.eventPipe, $section, this.currentUser, sectionComments));
+    this.sections.push(new Section(this.eventPipe, $section, this.currentUser, sectionComments, this.voting));
   }, this);
 };
 

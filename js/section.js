@@ -10,13 +10,14 @@ var t = require('t');
  * @param {Object} eventPipe The Emitter object used for passing around events.
  * @param {Array} comments   The array of comments for this section. Optional.
  */
-function Section( eventPipe, $el, currentUser, comments ) {
+function Section( eventPipe, $el, currentUser, comments, voting ) {
 	this.eventPipe = eventPipe;
 	this.$el = $el;
 	this.comments = comments ? comments.comments : [];
 	this.currentUser = currentUser || null;
 	this.clickEventName = mobileCheck() ? 'touchstart' : 'click';
-	
+  this.voting = voting || false;
+
 	this.id = $el.data('section-id');
 
 	this.$el.on(this.clickEventName, '.side-comment .marker', _.bind(this.markerClick, this));
@@ -142,7 +143,8 @@ Section.prototype.insertComment = function( comment ) {
 	var newCommentHtml = _.template(CommentTemplate, { 
 		comment: comment,
 		currentUser: this.currentUser,
-    t: t
+    t: t,
+    voting: this.voting
 	});
 	this.$el.find('.comments').append(newCommentHtml);
 	this.$el.find('.side-comment').addClass('has-comments');
