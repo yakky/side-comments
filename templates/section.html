@@ -6,7 +6,7 @@
   <div class="comments-wrapper">
     <ul class="comments">
       <% _.each(comments, function( comment ){ %>
-        <%= _.template(commentTemplate, { comment: comment, currentUser: currentUser, t: t }) %>
+        <%= _.template(commentTemplate, { comment: comment, currentUser: currentUser, t: t, voting: voting }) %>
       <% }) %>
     </ul>
 
