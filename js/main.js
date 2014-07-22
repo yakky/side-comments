@@ -44,6 +44,8 @@ function SideComments( el, currentUser, existingComments, options ) {
   this.eventPipe.on('sectionDeselected', _.bind(this.sectionDeselected, this));
   this.eventPipe.on('commentPosted', _.bind(this.commentPosted, this));
   this.eventPipe.on('commentDeleted', _.bind(this.commentDeleted, this));
+  this.eventPipe.on('commentUpvoted', _.bind(this.commentUpvoted, this));
+  this.eventPipe.on('commentDownvoted', _.bind(this.commentUpvoted, this));
   this.eventPipe.on('addCommentAttempted', _.bind(this.addCommentAttempted, this));
   this.$body.on('click', _.bind(this.bodyClick, this));
   this.initialize(this.existingComments);
@@ -121,6 +123,22 @@ SideComments.prototype.commentPosted = function( comment ) {
  */
 SideComments.prototype.commentDeleted = function( comment ) {
   this.emit('commentDeleted', comment);
+};
+
+/**
+ * Fired when the commentUpvoted event is triggered.
+ * @param  {Object} comment  The commentId of the deleted comment.
+ */
+SideComments.prototype.commentUpvoted = function( comment ) {
+  this.emit('commentUpvoted', comment);
+};
+
+/**
+ * Fired when the commentDownvoted event is triggered.
+ * @param  {Object} comment  The commentId of the deleted comment.
+ */
+SideComments.prototype.commentDownvoted = function( comment ) {
+  this.emit('commentDownvoted', comment);
 };
 
 /**

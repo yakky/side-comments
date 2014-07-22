@@ -24,7 +24,9 @@ function Section( eventPipe, $el, currentUser, comments, voting ) {
 	this.$el.on(this.clickEventName, '.side-comment .add-comment', _.bind(this.addCommentClick, this));
 	this.$el.on(this.clickEventName, '.side-comment .post', _.bind(this.postCommentClick, this));
 	this.$el.on(this.clickEventName, '.side-comment .cancel', _.bind(this.cancelCommentClick, this));
-	this.$el.on(this.clickEventName, '.side-comment .delete', _.bind(this.deleteCommentClick, this));
+  this.$el.on(this.clickEventName, '.side-comment .delete', _.bind(this.deleteCommentClick, this));
+  this.$el.on(this.clickEventName, '.side-comment .upvote', _.bind(this.upvoteCommentClick, this));
+	this.$el.on(this.clickEventName, '.side-comment .downvote', _.bind(this.downvoteCommentClick, this));
 	this.render();
 }
 
@@ -179,6 +181,44 @@ Section.prototype.deleteComment = function( commentId ) {
 	var comment = _.find(this.comments, { id: commentId });
 	comment.sectionId = this.id;
 	this.eventPipe.emit('commentDeleted', comment);
+};
+
+/**
+ * Event handler for upvote comment clicks.
+ * @param  {Object} event The event object.
+ */
+Section.prototype.upvoteCommentClick = function( event ) {
+  event.preventDefault();
+  var commentId = $(event.target).closest('li').data('comment-id');
+  this.upvoteComment(commentId);
+};
+
+/**
+ * Finds the comment and emits an event with the comment to be upvoted.
+ */
+Section.prototype.upvoteComment = function( commentId ) {
+  var comment = _.find(this.comments, { id: commentId });
+  comment.sectionId = this.id;
+  this.eventPipe.emit('commentUpvoted', comment);
+};
+
+/**
+ * Event handler for downvote comment clicks.
+ * @param  {Object} event The event object.
+ */
+Section.prototype.downvoteCommentClick = function( event ) {
+  event.preventDefault();
+  var commentId = $(event.target).closest('li').data('comment-id');
+  this.downvoteComment(commentId);
+};
+
+/**
+ * Finds the comment and emits an event with the comment to be downvoted.
+ */
+Section.prototype.downvoteComment = function( commentId ) {
+  var comment = _.find(this.comments, { id: commentId });
+  comment.sectionId = this.id;
+  this.eventPipe.emit('commentDownvoted', comment);
 };
 
 /**
