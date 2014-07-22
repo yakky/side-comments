@@ -33,6 +33,7 @@ function SideComments( el, currentUser, existingComments, options ) {
     t.lang(locale);
   } else if (options.trans) {
     t[options.trans.locale] = options.trans.translations;
+    t.lang(options.trans.locale);
   }
 
   // Event bindings
