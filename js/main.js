@@ -26,10 +26,14 @@ function SideComments( el, currentUser, existingComments, options ) {
   this.existingComments = _.cloneDeep(existingComments) || [];
   this.sections = [];
   this.activeSection = null;
-  trans.help(t);
-  var locale = options.locale || 'en';
-  t.lang(locale);
-  
+  if (options.locale) {
+    trans.help(t);
+    var locale = options.locale || 'en';
+    t.lang(locale);
+  } else if (options.trans) {
+    t[options.trans.locale] = options.trans.translations;
+  }
+
   // Event bindings
   this.eventPipe.on('showComments', _.bind(this.showComments, this));
   this.eventPipe.on('hideComments', _.bind(this.hideComments, this));
