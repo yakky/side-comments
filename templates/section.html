@@ -17,13 +17,15 @@
         <div class="author-avatar">
           <img src="<%= currentUser.avatarUrl %>">
         </div>
-        <p class="author-name">
-          <%= currentUser.name %>
-        </p>
-        <input type="text" class="comment-box right-of-avatar" placeholder="<%= t('side-comments.leave-a-comment') %>...">
-        <div class="actions right-of-avatar">
-          <a href="#" class="action-link post"><%= t('side-comments.post') %></a>
-          <a href="#" class="action-link cancel"><%= t('side-comments.cancel') %></a>
+        <div class="right-of-avatar">
+          <p class="author-name">
+            <%= currentUser.name %>
+          </p>
+          <input type="text" class="comment-box" placeholder="<%= t('side-comments.leave-a-comment') %>...">
+          <div class="actions">
+            <a href="#" class="action-link post"><%= t('side-comments.post') %></a>
+            <a href="#" class="action-link cancel"><%= t('side-comments.cancel') %></a>
+          </div>
         </div>
       </div>
     <% } %>
