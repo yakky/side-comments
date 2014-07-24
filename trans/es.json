@@ -3,6 +3,7 @@
   "side-comments.cancel": "Cancelar",
   "side-comments.leave-a-comment": "Deja un comentario",
   "side-comments.delete": "Borrar",
-  "side-comments.upvote": "Aporta",
-  "side-comments.downvote": "No aporta"
+  "side-comments.or": "o",
+  "side-comments.login": "Login",
+  "side-comments.signup": "Signup"
 }
