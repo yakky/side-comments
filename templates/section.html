@@ -10,11 +10,13 @@
       <% }) %>
     </ul>
 
-    <span class="restricted">
-      <a href="/login"><%= t('side-comments.login') %></a>
-      <%= t('side-comments.or') %>
-      <a href="/signup"><%= t('side-comments.signup') %></a>
-    </span>
+    <% if (!currentUser) { %>
+      <span class="restricted">
+        <a href="/login"><%= t('side-comments.login') %></a>
+        <%= t('side-comments.or') %>
+        <a href="/signup"><%= t('side-comments.signup') %></a>
+      </span>
+    <% } %>
 
     <% if (currentUser){ %>
       <a href="#" class="add-comment"><%= t('side-comments.leave-a-comment') %></a>
