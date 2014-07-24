@@ -12,15 +12,15 @@
     </div>
     <div class="right-of-avatar">
       <% if (comment.authorUrl) { %>
-        <a class="author-name right-of-avatar" href="<%= comment.authorUrl %>">
+        <a class="author-name" href="<%= comment.authorUrl %>">
           <%= comment.authorName %>
         </a>
       <% } else { %>
-        <p class="author-name right-of-avatar">
+        <p class="author-name">
           <%= comment.authorName %>
         </p>
       <% } %>
-      <p class="comment right-of-avatar">
+      <p class="comment">
         <%= comment.comment %>
       </p>
       <% if (currentUser && comment.authorId === currentUser.id){ %>
