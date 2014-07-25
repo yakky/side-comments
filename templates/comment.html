@@ -19,7 +19,7 @@
         <p class="author-name">
           <%= comment.authorName %>
           <% if (comment.createdAt) { %>
-            <small class="ago"><%= comment.createdAt %></small>
+            <small class="ago" data-time="<%= comment.createdAt %>"></small>
           <% } %>
         </p>
       <% } %>
