@@ -172,7 +172,7 @@ Section.prototype.deleteCommentClick = function( event ) {
 	event.preventDefault();
 	var commentId = $(event.target).closest('li').data('comment-id');
 
-	if (window.confirm(t('side-comment.delete.confirmation')) {
+	if (window.confirm(t('side-comment.delete.confirmation'))) {
 		this.deleteComment(commentId);
 	}
 };
