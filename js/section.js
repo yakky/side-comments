@@ -3,6 +3,8 @@ var Template = require('../templates/section.html');
 var CommentTemplate = require('../templates/comment.html');
 var mobileCheck = require('./helpers/mobile-check.js');
 var t = require('t');
+var timeago = require('timeago');
+
 
 /**
  * Creates a new Section object, which is responsible for managing a
@@ -10,13 +12,14 @@ var t = require('t');
  * @param {Object} eventPipe The Emitter object used for passing around events.
  * @param {Array} comments   The array of comments for this section. Optional.
  */
-function Section( eventPipe, $el, currentUser, comments, voting ) {
+function Section( eventPipe, $el, currentUser, comments, options ) {
 	this.eventPipe = eventPipe;
 	this.$el = $el;
 	this.comments = comments ? comments.comments : [];
 	this.currentUser = currentUser || null;
 	this.clickEventName = mobileCheck() ? 'touchstart' : 'click';
-  this.voting = voting || false;
+  this.locale = options.locale || options.trans.locale || 'en';
+  this.voting = options.voting || false;
 
 	this.id = $el.data('section-id');
 
@@ -294,6 +297,7 @@ Section.prototype.render = function() {
     t: t,
     voting: this.voting
 	})).appendTo(this.$el);
+  timeago('.ago', { lang: this.locale, interval: 10 });
 };
 
 /**

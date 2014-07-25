@@ -3,7 +3,8 @@
   "repo": "aroc/side-comments",
   "dependencies": {
     "component/emitter": "*",
-    "component/t": "*"
+    "component/t": "*",
+    "cristiandouce/timeago": "0.0.1"
   },
   "scripts": [
     "js/main.js",

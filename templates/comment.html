@@ -18,6 +18,9 @@
       <% } else { %>
         <p class="author-name">
           <%= comment.authorName %>
+          <% if (comment.createdAt) { %>
+            <small class="ago"><%= comment.createdAt %></small>
+          <% } %>
         </p>
       <% } %>
       <p class="comment">

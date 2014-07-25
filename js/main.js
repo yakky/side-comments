@@ -32,9 +32,12 @@ function SideComments( el, currentUser, existingComments, options ) {
     var locale = options.locale || 'en';
     t.lang(locale);
   } else if (options.trans) {
-    t = options.trans
+    t = options.trans;
+  } else {
+    options.locale = 'en';
   }
   this.voting = options.voting || false;
+  this.options = options;
 
   // Event bindings
   this.eventPipe.on('showComments', _.bind(this.showComments, this));
@@ -62,7 +65,7 @@ SideComments.prototype.initialize = function( existingComments ) {
     var sectionId = $section.data('section-id').toString();
     var sectionComments = _.find(this.existingComments, { sectionId: sectionId });
 
-    this.sections.push(new Section(this.eventPipe, $section, this.currentUser, sectionComments, this.voting));
+    this.sections.push(new Section(this.eventPipe, $section, this.currentUser, sectionComments, this.options));
   }, this);
 };
 
