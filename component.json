@@ -4,6 +4,7 @@
   "dependencies": {
     "component/emitter": "*",
     "component/t": "*",
+    "cristiandouce/confirmation": "d0861",
     "cristiandouce/timeago": "0.0.1"
   },
   "scripts": [

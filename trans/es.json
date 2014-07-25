@@ -6,5 +6,6 @@
   "side-comments.or": "o",
   "side-comments.login": "Login",
   "side-comments.signup": "Signup",
-  "side-comments.delete.confirmation": "¿Deseas eliminar este comentario?"
+  "side-comments.confirmation.title": "Borrar comentario",
+  "side-comments.delete.confirmation": "¿Deseas borrar este comentario?"
 }

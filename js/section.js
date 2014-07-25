@@ -4,7 +4,7 @@ var CommentTemplate = require('../templates/comment.html');
 var mobileCheck = require('./helpers/mobile-check.js');
 var t = require('t');
 var timeago = require('timeago');
-
+var confirm = require('confirmation');
 
 /**
  * Creates a new Section object, which is responsible for managing a
@@ -172,9 +172,18 @@ Section.prototype.deleteCommentClick = function( event ) {
 	event.preventDefault();
 	var commentId = $(event.target).closest('li').data('comment-id');
 
-	if (window.confirm(t('side-comments.delete.confirmation'))) {
-		this.deleteComment(commentId);
-	}
+	function onconfirm(ok) {
+    if (ok) return this.deleteComment(commentId);
+  }
+
+  confirm(t('side-comments.confirmation.title'), t('side-comments.delete.confirmation'))
+  .cancel(t('side-comments.cancel'))
+  .ok(t('side-comments.delete'))
+  .modal()
+  .closable()
+  .effect('slide')
+  .focus()
+  .show(onconfirm.bind(this))
 };
 
 /**
