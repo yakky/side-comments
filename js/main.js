@@ -27,15 +27,8 @@ function SideComments( el, currentUser, existingComments, options ) {
   this.sections = [];
   this.activeSection = null;
   options = options || {};
-  if (options.locale) {
-    trans.help(t);
-    var locale = options.locale || 'en';
-    t.lang(locale);
-  } else if (options.trans) {
-    t = options.trans;
-  } else {
-    options.locale = 'en';
-  }
+  t = options.trans;
+  options.locale = options.locale || 'en';
   this.voting = options.voting || false;
   this.options = options;
 
