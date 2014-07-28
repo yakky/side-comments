@@ -303,7 +303,7 @@ Section.prototype.render = function() {
 	  comments: this.comments,
 	  sectionClasses: this.sectionClasses(),
 	  currentUser: this.currentUser,
-    t: t,
+    t: this.t,
     voting: this.voting
 	})).appendTo(this.$el);
   timeago('.ago', { lang: this.locale, interval: 10 });
