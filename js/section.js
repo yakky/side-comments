@@ -2,7 +2,6 @@ var _ = require('./vendor/lodash-custom.js');
 var Template = require('../templates/section.html');
 var CommentTemplate = require('../templates/comment.html');
 var mobileCheck = require('./helpers/mobile-check.js');
-var t = require('t');
 var timeago = require('timeago');
 var confirm = require('confirmation');
 
@@ -20,6 +19,7 @@ function Section( eventPipe, $el, currentUser, comments, options ) {
 	this.clickEventName = mobileCheck() ? 'touchstart' : 'click';
   this.locale = options.locale || options.trans.locale || 'en';
   this.voting = options.voting || false;
+  this.t = options.t || t;
 
 	this.id = $el.data('section-id');
 
@@ -148,7 +148,7 @@ Section.prototype.insertComment = function( comment ) {
 	var newCommentHtml = _.template(CommentTemplate, { 
 		comment: comment,
 		currentUser: this.currentUser,
-    t: t,
+    t: this.t,
     voting: this.voting
 	});
 	this.$el.find('.comments').append(newCommentHtml);

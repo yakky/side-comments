@@ -27,9 +27,9 @@ function SideComments( el, currentUser, existingComments, options ) {
   this.sections = [];
   this.activeSection = null;
   options = options || {};
-  t = options.trans;
   options.locale = options.locale || 'en';
-  this.voting = options.voting || false;
+  options.voting = options.voting || false;
+  options.t = options.t || t;
   this.options = options;
 
   // Event bindings
