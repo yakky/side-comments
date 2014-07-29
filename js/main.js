@@ -1,7 +1,6 @@
 var _ = require('./vendor/lodash-custom.js');
 var Section = require('./section.js');
 var Emitter = require('emitter');
-var t = require('t');
 var trans = require('../trans');
 
 /**
@@ -29,7 +28,6 @@ function SideComments( el, currentUser, existingComments, options ) {
   options = options || {};
   options.locale = options.locale || 'en';
   options.voting = options.voting || false;
-  options.t = options.t || t;
   this.options = options;
 
   // Event bindings

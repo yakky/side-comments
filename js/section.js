@@ -4,6 +4,7 @@ var CommentTemplate = require('../templates/comment.html');
 var mobileCheck = require('./helpers/mobile-check.js');
 var timeago = require('timeago');
 var confirm = require('confirmation');
+var t = require('t');
 
 /**
  * Creates a new Section object, which is responsible for managing a
@@ -19,7 +20,6 @@ function Section( eventPipe, $el, currentUser, comments, options ) {
 	this.clickEventName = mobileCheck() ? 'touchstart' : 'click';
   this.locale = options.locale || options.trans.locale || 'en';
   this.voting = options.voting || false;
-  this.t = options.t || t;
 
 	this.id = $el.data('section-id');
 
@@ -148,7 +148,7 @@ Section.prototype.insertComment = function( comment ) {
 	var newCommentHtml = _.template(CommentTemplate, { 
 		comment: comment,
 		currentUser: this.currentUser,
-    t: this.t,
+    t: t,
     voting: this.voting
 	});
 	this.$el.find('.comments').append(newCommentHtml);
@@ -303,7 +303,7 @@ Section.prototype.render = function() {
 	  comments: this.comments,
 	  sectionClasses: this.sectionClasses(),
 	  currentUser: this.currentUser,
-    t: this.t,
+    t: t,
     voting: this.voting
 	})).appendTo(this.$el);
   timeago('.ago', { lang: this.locale, interval: 10 });
