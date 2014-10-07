@@ -1,4 +1,9 @@
 
+0.0.6 / 2014-10-07 
+==================
+
+ * Add not allowing side-comments longer than 4096 characters
+
 0.0.5 / 2014-10-07
 ==================
 
