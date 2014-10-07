@@ -5,7 +5,7 @@
     "component/emitter": "*",
     "component/t": "*",
     "cristiandouce/confirmation": "d0861",
-    "cristiandouce/timeago": "0.0.1"
+    "DemocracyOS/timeago": "master"
   },
   "scripts": [
     "js/main.js",
