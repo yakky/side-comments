@@ -5,7 +5,11 @@
     "component/emitter": "*",
     "component/t": "*",
     "cristiandouce/confirmation": "d0861",
-    "DemocracyOS/timeago": "master"
+    "DemocracyOS/timeago": "master",
+    "slifszyc/trunkata": "0.2.4",
+    "component/classes": "1.2.0",
+    "component/dom": "1.0.6",
+    "component/closest": "0.1.4"
   },
   "scripts": [
     "js/main.js",
