@@ -132,6 +132,9 @@ Section.prototype.postCommentClick = function( event ) {
 Section.prototype.postComment = function() {
   var $commentBox = this.$el.find('.comment-box');
   var commentBody = $commentBox.val();
+  if (commentBody.length > 4096) {
+    return this.$el.find('.comment-form .error').html(t('Argument is limited to 4096 characters'));
+  }
   var comment = {
     sectionId: this.id,
     comment: commentBody,

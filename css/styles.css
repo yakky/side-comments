@@ -115,6 +115,10 @@
 .side-comment.active .comments-wrapper {
   display: block;
 }
+.side-comment .comment-form .error {
+  color: red;
+  font-size: 12px;
+}
 @media (max-width: 768px) {
   body {
     -webkit-overflow-scrolling: touch;
