@@ -95,6 +95,10 @@
 .side-comment .actions {
   margin: 0;
 }
+.side-comment .read-more {
+  margin-top: 0px;
+  margin-bottom: 10px;
+}
 .side-comment .actions,
 .side-comment .delete {
   margin-left: 42px;
