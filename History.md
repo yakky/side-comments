@@ -1,4 +1,9 @@
 
+0.0.10 / 2014-10-08
+==================
+
+ * fix delete comment feature always available for admins
+
 0.0.9 / 2014-10-07 
 ==================
 
