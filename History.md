@@ -1,20 +1,25 @@
 
+0.0.11 / 2014-10-21
+==================
+
+ * Update dep refs, package.json and component.json
+
 0.0.10 / 2014-10-08
 ==================
 
  * fix delete comment feature always available for admins
 
-0.0.9 / 2014-10-07 
+0.0.9 / 2014-10-07
 ==================
 
  * Remove error on successful post
 
-0.0.7 / 2014-10-07 
+0.0.7 / 2014-10-07
 ==================
 
  * Add missing error element on template
 
-0.0.6 / 2014-10-07 
+0.0.6 / 2014-10-07
 ==================
 
  * Add not allowing side-comments longer than 4096 characters
