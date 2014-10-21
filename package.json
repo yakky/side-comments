@@ -1,6 +1,10 @@
 {
   "name": "side-comments",
-  "version": "0.0.1",
+  "version": "0.0.10",
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/DemocracyOS/side-comments"
+  },
   "private": true,
   "dependencies": {
     "gulp": "*",

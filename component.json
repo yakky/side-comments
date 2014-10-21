@@ -1,9 +1,10 @@
 {
   "name": "side-comments",
-  "repo": "aroc/side-comments",
+  "version": "0.0.10",
+  "repository": "DemocracyOS/side-comments",
   "dependencies": {
-    "component/emitter": "*",
-    "component/t": "*",
+    "component/emitter": "1.1.3",
+    "component/t": "1.0.0",
     "cristiandouce/confirmation": "d0861",
     "DemocracyOS/timeago": "master",
     "slifszyc/trunkata": "0.2.4",
