@@ -10,6 +10,8 @@ var classes = require('classes');
 var closest = require('closest');
 var o = require('dom');
 
+var time = timeago('.ago', { lang: this.locale, interval: 10000 });
+
 /**
  * Creates a new Section object, which is responsible for managing a
  * single comment section.
@@ -155,7 +157,7 @@ Section.prototype.postComment = function() {
  */
 Section.prototype.insertComment = function( comment ) {
   this.comments.push(comment);
-  var newCommentHtml = _.template(CommentTemplate, { 
+  var newCommentHtml = _.template(CommentTemplate, {
     comment: comment,
     currentUser: this.currentUser,
     t: t,
@@ -165,6 +167,7 @@ Section.prototype.insertComment = function( comment ) {
   this.$el.find('.side-comment').addClass('has-comments');
   this.updateCommentCount();
   this.hideCommentForm();
+  time.update();
 };
 
 /**
@@ -347,7 +350,7 @@ Section.prototype.render = function() {
     voting: this.voting
   }))
   el.appendTo(this.$el);
-  timeago('.ago', { lang: this.locale, interval: 10000 });
+  time.update();
 };
 
 /**
