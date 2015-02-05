@@ -1,4 +1,10 @@
 
+0.0.12 / 2015-02-05
+==================
+
+ * Remove specifying `timeago.interval` since default is good enough
+ * Made timeago instance singleton to prevent CPU overhead. Closes #2
+
 0.0.11 / 2014-10-21
 ==================
 
