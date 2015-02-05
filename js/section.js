@@ -10,7 +10,7 @@ var classes = require('classes');
 var closest = require('closest');
 var o = require('dom');
 
-var time = timeago('.ago', { lang: this.locale, interval: 10000 });
+var time = timeago('.ago', { lang: this.locale });
 
 /**
  * Creates a new Section object, which is responsible for managing a
