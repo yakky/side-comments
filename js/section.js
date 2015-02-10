@@ -2,15 +2,12 @@ var _ = require('./vendor/lodash-custom.js');
 var Template = require('../templates/section.html');
 var CommentTemplate = require('../templates/comment.html');
 var mobileCheck = require('./helpers/mobile-check.js');
-var timeago = require('timeago');
 var confirm = require('confirmation');
 var t = require('t');
 var trunkata = require('trunkata');
 var classes = require('classes');
 var closest = require('closest');
 var o = require('dom');
-
-var time = timeago('.ago', { lang: this.locale });
 
 /**
  * Creates a new Section object, which is responsible for managing a
@@ -167,7 +164,6 @@ Section.prototype.insertComment = function( comment ) {
   this.$el.find('.side-comment').addClass('has-comments');
   this.updateCommentCount();
   this.hideCommentForm();
-  time.update();
 };
 
 /**
@@ -350,7 +346,6 @@ Section.prototype.render = function() {
     voting: this.voting
   }))
   el.appendTo(this.$el);
-  time.update();
 };
 
 /**
