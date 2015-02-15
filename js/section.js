@@ -30,6 +30,8 @@ function Section( eventPipe, $el, currentUser, comments, options ) {
   this.$el.on(this.clickEventName, '.side-comment .add-comment', _.bind(this.addCommentClick, this));
   this.$el.on(this.clickEventName, '.side-comment .post', _.bind(this.postCommentClick, this));
   this.$el.on(this.clickEventName, '.side-comment .cancel', _.bind(this.cancelCommentClick, this));
+  this.$el.on(this.clickEventName, '.side-comment .edit', _.bind(this.showEditCommentForm, this));
+  this.$el.on(this.clickEventName, '.side-comment .cancel-edit', _.bind(this.hideEditCommentForm, this));
   this.$el.on(this.clickEventName, '.side-comment .delete', _.bind(this.deleteCommentClick, this));
   this.$el.on(this.clickEventName, '.side-comment .upvote', _.bind(this.upvoteCommentClick, this));
   this.$el.on(this.clickEventName, '.side-comment .downvote', _.bind(this.downvoteCommentClick, this));
@@ -84,6 +86,28 @@ Section.prototype.hideCommentForm = function() {
 };
 
 /**
+ * Event handler for edit comment clicks.
+ * @param  {Object} event The event object.
+ */
+Section.prototype.showEditCommentForm = function( event ) {
+  event.preventDefault();
+  var target = $(event.target).closest('li');
+  target.find('.comment-view-wrapper').addClass('hide');
+  target.find('.comment-form-wrapper').removeClass('hide');
+};
+
+/**
+ * Event handler for cancelling comment edits
+ * @param {Object} event The event object.
+ */
+Section.prototype.hideEditCommentForm = function( event ) {
+  event.preventDefault();
+  var target = $(event.target).closest('li');
+  target.find('.comment-view-wrapper').removeClass('hide');
+  target.find('.comment-form-wrapper').addClass('hide');
+};
+
+/**
  * Focus on the comment box in the comment form.
  */
 Section.prototype.focusCommentBox = function() {
@@ -122,21 +146,26 @@ Section.prototype.cancelComment = function() {
  */
 Section.prototype.postCommentClick = function( event ) {
   event.preventDefault();
-  this.postComment();
+  var form = $(event.target).closest('.comment-form-wrapper');
+  this.postComment(form);
 };
 
 /**
  * Post a comment to this section.
+ * @param {Object} form The form to gather values from
  */
-Section.prototype.postComment = function() {
-  var $commentBox = this.$el.find('.comment-box');
-  var commentBody = $commentBox.val();
+Section.prototype.postComment = function( form ) {
+  var commentBox = form.find('.comment-box');
+  var commentBody = commentBox.val();
+  var commentId   = form.find('.comment-id').val();
+
   if (commentBody.length > 4096) {
-    return this.$el.find('.comment-form .error').html(t('Argument is limited to 4096 characters'));
+    return form.find('.error').html(t('Argument is limited to 4096 characters'));
   } else {
-    this.$el.find('.comment-form .error').html('');
+    form.find('.error').html('');
   }
   var comment = {
+    id: commentId,
     sectionId: this.id,
     comment: commentBody,
     authorAvatarUrl: this.currentUser.avatarUrl,
@@ -144,8 +173,13 @@ Section.prototype.postComment = function() {
     authorId: this.currentUser.id,
     authorUrl: this.currentUser.authorUrl || null
   };
-  $commentBox.val(''); // Clear the comment.
-  this.eventPipe.emit('commentPosted', comment);
+
+  if (commentId) {
+    this.eventPipe.emit('commentUpdated', comment);
+  } else {
+    commentBox.val(''); // Clear the comment.
+    this.eventPipe.emit('commentPosted', comment);
+  }
 };
 
 /**
@@ -164,6 +198,16 @@ Section.prototype.insertComment = function( comment ) {
   this.$el.find('.side-comment').addClass('has-comments');
   this.updateCommentCount();
   this.hideCommentForm();
+};
+
+Section.prototype.replaceComment = function( comment ) {
+  var newCommentHtml = _.template(CommentTemplate, {
+    comment: comment,
+    currentUser: this.currentUser,
+    t: t,
+    voting: this.voting
+  });
+  this.$el.find('[data-comment-id=' + comment.id + ']').replaceWith(newCommentHtml);
 };
 
 /**
