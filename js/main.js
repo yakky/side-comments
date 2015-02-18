@@ -35,6 +35,7 @@ function SideComments( el, currentUser, existingComments, options ) {
   this.eventPipe.on('sectionSelected', _.bind(this.sectionSelected, this));
   this.eventPipe.on('sectionDeselected', _.bind(this.sectionDeselected, this));
   this.eventPipe.on('commentPosted', _.bind(this.commentPosted, this));
+  this.eventPipe.on('commentUpdated', _.bind(this.commentUpdated, this));
   this.eventPipe.on('commentDeleted', _.bind(this.commentDeleted, this));
   this.eventPipe.on('commentUpvoted', _.bind(this.commentUpvoted, this));
   this.eventPipe.on('commentDownvoted', _.bind(this.commentUpvoted, this));
@@ -110,6 +111,14 @@ SideComments.prototype.commentPosted = function( comment ) {
 };
 
 /**
+ * Fired when the commentUpdated event is triggered.
+ * @param  {Object} comment  The comment object to be updated.
+ */
+SideComments.prototype.commentUpdated = function( comment ) {
+  this.emit('commentUpdated', comment);
+};
+
+/**
  * Fired when the commentDeleted event is triggered.
  * @param  {Object} comment  The commentId of the deleted comment.
  */
@@ -148,6 +157,15 @@ SideComments.prototype.addCommentAttempted = function() {
 SideComments.prototype.insertComment = function( comment ) {
   var section = _.find(this.sections, { id: comment.sectionId });
   section.insertComment(comment);
+};
+
+/**
+ * Updates the given comment into the right section.
+ * @param  {Object} comment A comment to be updated.
+ */
+SideComments.prototype.replaceComment = function( comment ) {
+  var section = _.find(this.sections, { id: comment.sectionId });
+  section.replaceComment(comment);
 };
 
 /**

@@ -23,12 +23,28 @@
           <% } %>
         </p>
       <% } %>
-      <p class="comment">
-        <%= comment.comment %>
-      </p>
-      <% if (currentUser && (currentUser.isAdmin || comment.authorId === currentUser.id)){ %>
-        <a href="#" class="action-link delete"><%= t('side-comments.delete') %></a>
-      <% } %>
+      <div class="comment-view-wrapper">
+        <p class="comment">
+          <%= comment.comment %>
+        </p>
+        <div class="comment-actions">
+          <% if (currentUser && comment.authorId === currentUser.id){ %>
+            <a href="#" class="action-link edit"><%= t('side-comments.edit') %></a>
+          <% } %>
+          <% if (currentUser && (currentUser.isAdmin || comment.authorId === currentUser.id)){ %>
+            <a href="#" class="action-link delete"><%= t('side-comments.delete') %></a>
+          <% } %>
+        </div>
+      </div>
+      <div class="comment-form-wrapper hide">
+        <p class="error"></p>
+        <input type="hidden" class="comment-id" value="<%= comment.id %>">
+        <input type="text" class="comment-box" value="<%= comment.comment %>">
+        <div class="comment-actions">
+          <a href="#" class="action-link post"><%= t('side-comments.save') %></a>
+          <a href="#" class="action-link cancel-edit"><%= t('side-comments.cancel') %></a>
+        </div>
+      </div>
     </div>
   </div>
 </li>
