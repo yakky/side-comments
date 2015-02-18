@@ -1,4 +1,10 @@
 
+0.0.14 / 2015-02-18
+===================
+
+  * Add editing comment functionality
+  * Add missing entry in History.md
+
 0.0.13 / 2015-02-10
 ===================
 
