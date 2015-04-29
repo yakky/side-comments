@@ -13,6 +13,21 @@
     "gulp-minify-css": "*",
     "gulp-less": "*",
     "gulp-autoprefixer": "*",
-    "gulp-rename": "*"
+    "gulp-rename": "*",
+    "component-emitter": "1.1.3",
+    "t-component": "1.0.0",
+    "confirmation-component": "0.0.1",
+    "trunkata": "git://github.com/slifszyc/trunkata.git#master",
+    "component-classes": "1.2.0",
+    "component-dom": "1.0.7",
+    "component-closest": "0.1.4"
+  },
+  "browser": {
+    "emitter": "component-emitter",
+    "t": "t-component",
+    "confirmation": "confirmation-component",
+    "classes": "component-classes",
+    "dom": "component-dom",
+    "closest": "component-closest"
   }
 }
