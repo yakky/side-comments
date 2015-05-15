@@ -1,6 +1,6 @@
 {
   "name": "side-comments",
-  "version": "0.0.12",
+  "version": "0.0.15",
   "repository": "DemocracyOS/side-comments",
   "dependencies": {
     "component/emitter": "1.1.3",

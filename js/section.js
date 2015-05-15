@@ -23,6 +23,7 @@ function Section( eventPipe, $el, currentUser, comments, options ) {
   this.clickEventName = mobileCheck() ? 'touchstart' : 'click';
   this.locale = options.locale || options.trans.locale || 'en';
   this.voting = options.voting || false;
+  this.reference = options.reference;
 
   this.id = $el.data('section-id');
 
@@ -387,7 +388,8 @@ Section.prototype.render = function() {
     sectionClasses: this.sectionClasses(),
     currentUser: this.currentUser,
     t: t,
-    voting: this.voting
+    voting: this.voting,
+    reference: this.reference
   }))
   el.appendTo(this.$el);
 };
