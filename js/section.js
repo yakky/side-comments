@@ -236,7 +236,6 @@ Section.prototype.deleteCommentClick = function( event ) {
   .modal()
   .closable()
   .effect('slide')
-  .focus()
   .show(onconfirm.bind(this))
 };
 

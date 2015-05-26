@@ -29,8 +29,6 @@
   height: 100%;
 }
 .side-comment * {
-  -webkit-box-sizing: border-box;
-  -moz-box-sizing: border-box;
   box-sizing: border-box;
 }
 .side-comment .hide {
@@ -95,10 +93,6 @@
 .side-comment .actions {
   margin: 0;
 }
-.side-comment .read-more {
-  margin-top: 0px;
-  margin-bottom: 10px;
-}
 .side-comment .actions,
 .side-comment .delete {
   margin-left: 42px;
@@ -114,10 +108,6 @@
 }
 .side-comment.active .comments-wrapper {
   display: block;
-}
-.side-comment .comment-form .error {
-  color: red;
-  font-size: 12px;
 }
 @media (max-width: 768px) {
   body {
