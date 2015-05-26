@@ -5,14 +5,40 @@
     "type": "git",
     "url": "http://github.com/DemocracyOS/side-comments"
   },
-  "private": true,
+  "main": "./js/main.js",
   "dependencies": {
+    "browserify": "^10.1.0",
+    "component-classes": "1.2.0",
+    "component-closest": "0.1.4",
+    "component-dom": "1.0.7",
+    "component-emitter": "1.1.3",
+    "confirmation-component": "git://github.com/jfresco/confirmation.git#fix/npm-deps",
     "gulp": "*",
-    "gulp-concat": "*",
-    "gulp-uglify": "*",
-    "gulp-minify-css": "*",
-    "gulp-less": "*",
     "gulp-autoprefixer": "*",
-    "gulp-rename": "*"
+    "gulp-concat": "*",
+    "gulp-less": "*",
+    "gulp-minify-css": "*",
+    "gulp-rename": "*",
+    "gulp-uglify": "*",
+    "t-component": "1.0.0",
+    "trunkata": "0.2.1",
+    "lodash": "2.4.1",
+    "stringify": "3.1.0",
+    "vinyl-buffer": "^1.0.0",
+    "vinyl-source-stream": "^1.1.0",
+    "stringify": "3.1.0"
+  },
+  "browser": {
+    "emitter": "component-emitter",
+    "t": "t-component",
+    "confirmation": "confirmation-component",
+    "classes": "component-classes",
+    "dom": "component-dom",
+    "closest": "component-closest"
+  },
+  "browserify": {
+    "transform": [
+      "stringify"
+    ]
   }
 }
