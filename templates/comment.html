@@ -1,7 +1,7 @@
-<li data-comment-id="<%= comment.id %>">
+<li data-comment-id="<%- comment.id %>">
   <div class="comment-body">
     <div class="author-avatar">
-      <img src="<%= comment.authorAvatarUrl %>">
+      <img src="<%- comment.authorAvatarUrl %>">
       <% if (voting && currentUser && comment.authorId !== currentUser.id){ %>
         <div class="voting">
           <span class="votes">0</span>
@@ -12,20 +12,20 @@
     </div>
     <div class="right-of-avatar">
       <% if (comment.authorUrl) { %>
-        <a class="author-name" href="<%= comment.authorUrl %>">
-          <%= comment.authorName %>
+        <a class="author-name" href="<%- comment.authorUrl %>">
+          <%- comment.authorName %>
         </a>
       <% } else { %>
         <p class="author-name">
-          <%= comment.authorName %>
+          <%- comment.authorName %>
           <% if (comment.createdAt) { %>
-            <small class="ago" data-time="<%= comment.createdAt %>"></small>
+            <small class="ago" data-time="<%- comment.createdAt %>"></small>
           <% } %>
         </p>
       <% } %>
       <div class="comment-view-wrapper">
         <p class="comment">
-          <%= comment.comment %>
+          <%- comment.comment %>
         </p>
         <div class="comment-actions">
           <% if (currentUser && comment.authorId === currentUser.id){ %>
@@ -38,8 +38,8 @@
       </div>
       <div class="comment-form-wrapper hide">
         <p class="error"></p>
-        <input type="hidden" class="comment-id" value="<%= comment.id %>">
-        <input type="text" class="comment-box" value="<%= comment.comment %>">
+        <input type="hidden" class="comment-id" value="<%- comment.id %>">
+        <input type="text" class="comment-box" value="<%- comment.comment %>">
         <div class="comment-actions">
           <a href="#" class="action-link post"><%= t('side-comments.save') %></a>
           <a href="#" class="action-link cancel-edit"><%= t('side-comments.cancel') %></a>

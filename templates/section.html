@@ -1,6 +1,6 @@
 <div class="side-comment <%= sectionClasses %>">
   <a href="#" class="marker">
-    <span><%= comments.length %></span>
+    <span><%- comments.length %></span>
   </a>
 
   <div class="comments-wrapper">
@@ -22,11 +22,11 @@
       <a href="#" class="add-comment"><%= t('side-comments.leave-a-comment') %></a>
       <div class="comment-form comment-form-wrapper">
         <div class="author-avatar">
-          <img src="<%= currentUser.avatarUrl %>">
+          <img src="<%- currentUser.avatarUrl %>">
         </div>
         <div class="right-of-avatar">
           <p class="author-name">
-            <%= currentUser.name %>
+            <%- currentUser.name %>
           </p>
           <p class="error"></p>
           <input type="text" class="comment-box" placeholder="<%= t('side-comments.leave-a-comment') %>...">
