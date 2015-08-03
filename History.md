@@ -1,4 +1,16 @@
 
+0.0.19 / 2015-08-03
+===================
+
+  * Fix confirmation-component dep
+  * Bumped component-dom to 1.0.8
+  * Fixed deps
+  * Fixed dependencies and browserify transforms
+  * Reverted last commit
+  * Changed entry point
+  * Fixed dependencies
+  * Made module non-private and specified a main entry point
+
 0.0.13 / 2015-02-10
 ===================
 
