@@ -1,3 +1,7 @@
+# [DEPRECATED]
+
+SideComments functionality has been removed from DemocracyOS `> 1.0`. So, this repo is no longer mantained.
+
 # SideComments.js
 ######Current Version 0.0.3
 
