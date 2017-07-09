@@ -1,10 +1,8 @@
 .commentable-container {
-  -webkit-transition: all 0.22s ease;
-          transition: all 0.22s ease;
+  transition: all 0.22s ease;
 }
 .side-comments-open {
   -webkit-transform: translate(-220px, 0);
-      -ms-transform: translate(-220px, 0);
           transform: translate(-220px, 0);
 }
 .commentable-section {
@@ -117,7 +115,7 @@
   color: #89C794;
 }
 .side-comment .action-link.post .post:hover {
-  color: #468c54;
+  color: #468C54;
 }
 .side-comment .action-link.cancel:hover,
 .side-comment .action-link.delete:hover {
@@ -180,7 +178,6 @@
 @media (max-width: 768px) {
   .side-comments-open {
     -webkit-transform: translate(-220px, 0);
-        -ms-transform: translate(-220px, 0);
             transform: translate(-220px, 0);
   }
   .side-comment .comments-wrapper {

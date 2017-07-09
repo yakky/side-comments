@@ -5,8 +5,8 @@
       <% if (voting && currentUser && comment.authorId !== currentUser.id){ %>
         <div class="voting">
           <span class="votes">0</span>
-          <a href="#" class="action-link upvote", title="<%= t('side-comments.upvote') %>"><i class="icon-angle-up"></i></a>
-          <a href="#" class="action-link downvote", title="<%= t('side-comments.downvote') %>"><i class="icon-angle-down"></i></a>
+          <a href="#" class="action-link upvote", title="Upvote"><i class="icon-angle-up"></i></a>
+          <a href="#" class="action-link downvote", title="Downvote"><i class="icon-angle-down"></i></a>
         </div>
       <% } %>
     </div>
@@ -29,10 +29,10 @@
         </p>
         <div class="comment-actions">
           <% if (currentUser && comment.authorId === currentUser.id){ %>
-            <a href="#" class="action-link edit"><%= t('side-comments.edit') %></a>
+            <a href="#" class="action-link edit">Edit</a>
           <% } %>
           <% if (currentUser && (currentUser.isAdmin || comment.authorId === currentUser.id)){ %>
-            <a href="#" class="action-link delete"><%= t('side-comments.delete') %></a>
+            <a href="#" class="action-link delete">Delete</a>
           <% } %>
         </div>
       </div>
@@ -41,8 +41,8 @@
         <input type="hidden" class="comment-id" value="<%- comment.id %>">
         <input type="text" class="comment-box" value="<%- comment.comment %>">
         <div class="comment-actions">
-          <a href="#" class="action-link post"><%= t('side-comments.save') %></a>
-          <a href="#" class="action-link cancel-edit"><%= t('side-comments.cancel') %></a>
+          <a href="#" class="action-link post">Save</a>
+          <a href="#" class="action-link cancel-edit">Cancel</a>
         </div>
       </div>
     </div>

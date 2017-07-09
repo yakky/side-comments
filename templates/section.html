@@ -12,14 +12,14 @@
 
     <% if (!currentUser) { %>
       <span class="restricted">
-        <a href="/signin"><%= t('side-comments.login') %></a>
-        <%= t('side-comments.or') %>
-        <a href="/signup?reference=<%= reference %>"><%= t('side-comments.signup') %></a>
+        <a href="/signin">Login</a>
+        Or
+        <a href="/signup?reference=<%= reference %>">Signup</a>
       </span>
     <% } %>
 
     <% if (currentUser){ %>
-      <a href="#" class="add-comment"><%= t('side-comments.leave-a-comment') %></a>
+      <a href="#" class="add-comment">Leave a comment</a>
       <div class="comment-form comment-form-wrapper">
         <div class="author-avatar">
           <img src="<%- currentUser.avatarUrl %>">
@@ -29,10 +29,10 @@
             <%- currentUser.name %>
           </p>
           <p class="error"></p>
-          <input type="text" class="comment-box" placeholder="<%= t('side-comments.leave-a-comment') %>...">
+          <input type="text" class="comment-box" placeholder="Leave a comment...">
           <div class="actions">
-            <a href="#" class="action-link post"><%= t('side-comments.post') %></a>
-            <a href="#" class="action-link cancel"><%= t('side-comments.cancel') %></a>
+            <a href="#" class="action-link post">Post</a>
+            <a href="#" class="action-link cancel">Cancel</a>
           </div>
         </div>
       </div>

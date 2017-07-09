@@ -226,17 +226,9 @@ Section.prototype.deleteCommentClick = function( event ) {
   event.preventDefault();
   var commentId = $(event.target).closest('li').data('comment-id');
 
-  function onconfirm(ok) {
-    if (ok) return this.deleteComment(commentId);
+  if (window.confirm("Are you sure you want to delete this comment?")) {
+    this.deleteComment(commentId);
   }
-
-  confirm(t('side-comments.confirmation.title'), t('side-comments.delete.confirmation'))
-  .cancel(t('side-comments.cancel'))
-  .ok(t('side-comments.delete'))
-  .modal()
-  .closable()
-  .effect('slide')
-  .show(onconfirm.bind(this))
 };
 
 /**
