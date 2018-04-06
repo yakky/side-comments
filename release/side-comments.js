@@ -1,196 +1,10 @@
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.SideComments = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-// shim for using process in browser
-var process = module.exports = {};
-
-// cached from whatever global is present so that test runners that stub it
-// don't break things.  But we need to wrap it in a try catch in case it is
-// wrapped in strict mode code which doesn't define any globals.  It's inside a
-// function because try/catches deoptimize in certain engines.
-
-var cachedSetTimeout;
-var cachedClearTimeout;
-
-function defaultSetTimout() {
-    throw new Error('setTimeout has not been defined');
-}
-function defaultClearTimeout () {
-    throw new Error('clearTimeout has not been defined');
-}
-(function () {
-    try {
-        if (typeof setTimeout === 'function') {
-            cachedSetTimeout = setTimeout;
-        } else {
-            cachedSetTimeout = defaultSetTimout;
-        }
-    } catch (e) {
-        cachedSetTimeout = defaultSetTimout;
-    }
-    try {
-        if (typeof clearTimeout === 'function') {
-            cachedClearTimeout = clearTimeout;
-        } else {
-            cachedClearTimeout = defaultClearTimeout;
-        }
-    } catch (e) {
-        cachedClearTimeout = defaultClearTimeout;
-    }
-} ())
-function runTimeout(fun) {
-    if (cachedSetTimeout === setTimeout) {
-        //normal enviroments in sane situations
-        return setTimeout(fun, 0);
-    }
-    // if setTimeout wasn't available but was latter defined
-    if ((cachedSetTimeout === defaultSetTimout || !cachedSetTimeout) && setTimeout) {
-        cachedSetTimeout = setTimeout;
-        return setTimeout(fun, 0);
-    }
-    try {
-        // when when somebody has screwed with setTimeout but no I.E. maddness
-        return cachedSetTimeout(fun, 0);
-    } catch(e){
-        try {
-            // When we are in I.E. but the script has been evaled so I.E. doesn't trust the global object when called normally
-            return cachedSetTimeout.call(null, fun, 0);
-        } catch(e){
-            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error
-            return cachedSetTimeout.call(this, fun, 0);
-        }
-    }
-
-
-}
-function runClearTimeout(marker) {
-    if (cachedClearTimeout === clearTimeout) {
-        //normal enviroments in sane situations
-        return clearTimeout(marker);
-    }
-    // if clearTimeout wasn't available but was latter defined
-    if ((cachedClearTimeout === defaultClearTimeout || !cachedClearTimeout) && clearTimeout) {
-        cachedClearTimeout = clearTimeout;
-        return clearTimeout(marker);
-    }
-    try {
-        // when when somebody has screwed with setTimeout but no I.E. maddness
-        return cachedClearTimeout(marker);
-    } catch (e){
-        try {
-            // When we are in I.E. but the script has been evaled so I.E. doesn't  trust the global object when called normally
-            return cachedClearTimeout.call(null, marker);
-        } catch (e){
-            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error.
-            // Some versions of I.E. have different rules for clearTimeout vs setTimeout
-            return cachedClearTimeout.call(this, marker);
-        }
-    }
-
-
-
-}
-var queue = [];
-var draining = false;
-var currentQueue;
-var queueIndex = -1;
-
-function cleanUpNextTick() {
-    if (!draining || !currentQueue) {
-        return;
-    }
-    draining = false;
-    if (currentQueue.length) {
-        queue = currentQueue.concat(queue);
-    } else {
-        queueIndex = -1;
-    }
-    if (queue.length) {
-        drainQueue();
-    }
-}
-
-function drainQueue() {
-    if (draining) {
-        return;
-    }
-    var timeout = runTimeout(cleanUpNextTick);
-    draining = true;
-
-    var len = queue.length;
-    while(len) {
-        currentQueue = queue;
-        queue = [];
-        while (++queueIndex < len) {
-            if (currentQueue) {
-                currentQueue[queueIndex].run();
-            }
-        }
-        queueIndex = -1;
-        len = queue.length;
-    }
-    currentQueue = null;
-    draining = false;
-    runClearTimeout(timeout);
-}
-
-process.nextTick = function (fun) {
-    var args = new Array(arguments.length - 1);
-    if (arguments.length > 1) {
-        for (var i = 1; i < arguments.length; i++) {
-            args[i - 1] = arguments[i];
-        }
-    }
-    queue.push(new Item(fun, args));
-    if (queue.length === 1 && !draining) {
-        runTimeout(drainQueue);
-    }
-};
-
-// v8 likes predictible objects
-function Item(fun, array) {
-    this.fun = fun;
-    this.array = array;
-}
-Item.prototype.run = function () {
-    this.fun.apply(null, this.array);
-};
-process.title = 'browser';
-process.browser = true;
-process.env = {};
-process.argv = [];
-process.version = ''; // empty string to avoid regexp issues
-process.versions = {};
-
-function noop() {}
-
-process.on = noop;
-process.addListener = noop;
-process.once = noop;
-process.off = noop;
-process.removeListener = noop;
-process.removeAllListeners = noop;
-process.emit = noop;
-process.prependListener = noop;
-process.prependOnceListener = noop;
-
-process.listeners = function (name) { return [] }
-
-process.binding = function (name) {
-    throw new Error('process.binding is not supported');
-};
-
-process.cwd = function () { return '/' };
-process.chdir = function (dir) {
-    throw new Error('process.chdir is not supported');
-};
-process.umask = function() { return 0; };
-
-},{}],2:[function(require,module,exports){
 module.exports = function() {
 	var check = false;
 	(function(a){if(/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows (ce|phone)|xda|xiino/i.test(a)||/1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test(a.substr(0,4)))check = true})(navigator.userAgent||navigator.vendor||window.opera);
 	return check;
 }
-},{}],3:[function(require,module,exports){
+},{}],2:[function(require,module,exports){
 var _ = require('./vendor/lodash-custom.js');
 var Section = require('./section.js');
 var Emitter = require('emitter');
@@ -438,7 +252,7 @@ SideComments.prototype.destroy = function() {
 
 module.exports = SideComments;
 
-},{"./section.js":4,"./vendor/lodash-custom.js":5,"emitter":52}],4:[function(require,module,exports){
+},{"./section.js":3,"./vendor/lodash-custom.js":4,"emitter":26}],3:[function(require,module,exports){
 var _ = require('./vendor/lodash-custom.js');
 var Template = require('../templates/section.html');
 var CommentTemplate = require('../templates/comment.html');
@@ -849,7 +663,7 @@ function get(list, query) {
   return match || null;
 }
 
-},{"../templates/comment.html":69,"../templates/section.html":70,"./helpers/mobile-check.js":2,"./vendor/lodash-custom.js":5,"classes":6,"closest":8,"confirmation":54,"dom":11,"t":65,"trunkata":66}],5:[function(require,module,exports){
+},{"../templates/comment.html":63,"../templates/section.html":64,"./helpers/mobile-check.js":1,"./vendor/lodash-custom.js":4,"classes":5,"closest":6,"confirmation":39,"dom":18,"t":53,"trunkata":60}],4:[function(require,module,exports){
 (function (global){
 /**
  * @license
@@ -3243,7 +3057,7 @@ function get(list, query) {
 }.call(this));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],6:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 /**
  * Module dependencies.
  */
@@ -3429,15 +3243,7 @@ ClassList.prototype.contains = function(name){
     : !! ~index(this.array(), name);
 };
 
-},{"indexof":7}],7:[function(require,module,exports){
-module.exports = function(arr, obj){
-  if (arr.indexOf) return arr.indexOf(obj);
-  for (var i = 0; i < arr.length; ++i) {
-    if (arr[i] === obj) return i;
-  }
-  return -1;
-};
-},{}],8:[function(require,module,exports){
+},{"indexof":44}],6:[function(require,module,exports){
 var matches = require('matches-selector')
 
 module.exports = function (element, selector, checkYoSelf, root) {
@@ -3458,82 +3264,750 @@ module.exports = function (element, selector, checkYoSelf, root) {
   }
 }
 
-},{"matches-selector":9}],9:[function(require,module,exports){
+},{"matches-selector":30}],7:[function(require,module,exports){
+/**
+ * Module Dependencies
+ */
+
+var debug = require('debug')('css');
+var set = require('./lib/style');
+var get = require('./lib/css');
+
+/**
+ * Expose `css`
+ */
+
+module.exports = css;
+
+/**
+ * Get and set css values
+ *
+ * @param {Element} el
+ * @param {String|Object} prop
+ * @param {Mixed} val
+ * @return {Element} el
+ * @api public
+ */
+
+function css(el, prop, val) {
+  if (!el) return;
+
+  if (undefined !== val) {
+    var obj = {};
+    obj[prop] = val;
+    debug('setting styles %j', obj);
+    return setStyles(el, obj);
+  }
+
+  if ('object' == typeof prop) {
+    debug('setting styles %j', prop);
+    return setStyles(el, prop);
+  }
+
+  debug('getting %s', prop);
+  return get(el, prop);
+}
+
+/**
+ * Set the styles on an element
+ *
+ * @param {Element} el
+ * @param {Object} props
+ * @return {Element} el
+ */
+
+function setStyles(el, props) {
+  for (var prop in props) {
+    set(el, prop, props[prop]);
+  }
+
+  return el;
+}
+
+},{"./lib/css":9,"./lib/style":12,"debug":36}],8:[function(require,module,exports){
+/**
+ * Module Dependencies
+ */
+
+var debug = require('debug')('css:computed');
+var withinDocument = require('within-document');
+var styles = require('./styles');
+
+/**
+ * Expose `computed`
+ */
+
+module.exports = computed;
+
+/**
+ * Get the computed style
+ *
+ * @param {Element} el
+ * @param {String} prop
+ * @param {Array} precomputed (optional)
+ * @return {Array}
+ * @api private
+ */
+
+function computed(el, prop, precomputed) {
+  var computed = precomputed || styles(el);
+  var ret;
+  
+  if (!computed) return;
+
+  if (computed.getPropertyValue) {
+    ret = computed.getPropertyValue(prop) || computed[prop];
+  } else {
+    ret = computed[prop];
+  }
+
+  if ('' === ret && !withinDocument(el)) {
+    debug('element not within document, try finding from style attribute');
+    var style = require('./style');
+    ret = style(el, prop);
+  }
+
+  debug('computed value of %s: %s', prop, ret);
+
+  // Support: IE
+  // IE returns zIndex value as an integer.
+  return undefined === ret ? ret : ret + '';
+}
+
+},{"./style":12,"./styles":13,"debug":36,"within-document":61}],9:[function(require,module,exports){
+/**
+ * Module Dependencies
+ */
+
+var debug = require('debug')('css:css');
+var camelcase = require('to-camel-case');
+var computed = require('./computed');
+var property = require('./prop');
+
+/**
+ * Expose `css`
+ */
+
+module.exports = css;
+
+/**
+ * CSS Normal Transforms
+ */
+
+var cssNormalTransform = {
+  letterSpacing: 0,
+  fontWeight: 400
+};
+
+/**
+ * Get a CSS value
+ *
+ * @param {Element} el
+ * @param {String} prop
+ * @param {Mixed} extra
+ * @param {Array} styles
+ * @return {String}
+ */
+
+function css(el, prop, extra, styles) {
+  var hooks = require('./hooks');
+  var orig = camelcase(prop);
+  var style = el.style;
+  var val;
+
+  prop = property(prop, style);
+  var hook = hooks[prop] || hooks[orig];
+
+  // If a hook was provided get the computed value from there
+  if (hook && hook.get) {
+    debug('get hook provided. use that');
+    val = hook.get(el, true, extra);
+  }
+
+  // Otherwise, if a way to get the computed value exists, use that
+  if (undefined == val) {
+    debug('fetch the computed value of %s', prop);
+    val = computed(el, prop);
+  }
+
+  if ('normal' == val && cssNormalTransform[prop]) {
+    val = cssNormalTransform[prop];
+    debug('normal => %s', val);
+  }
+
+  // Return, converting to number if forced or a qualifier was provided and val looks numeric
+  if ('' == extra || extra) {
+    debug('converting value: %s into a number', val);
+    var num = parseFloat(val);
+    return true === extra || isNumeric(num) ? num || 0 : val;
+  }
+
+  return val;
+}
+
+/**
+ * Is Numeric
+ *
+ * @param {Mixed} obj
+ * @return {Boolean}
+ */
+
+function isNumeric(obj) {
+  return !isNan(parseFloat(obj)) && isFinite(obj);
+}
+
+},{"./computed":8,"./hooks":10,"./prop":11,"debug":36,"to-camel-case":55}],10:[function(require,module,exports){
+/**
+ * Module Dependencies
+ */
+
+var each = require('each');
+var css = require('./css');
+var cssShow = { position: 'absolute', visibility: 'hidden', display: 'block' };
+var pnum = (/[+-]?(?:\d*\.|)\d+(?:[eE][+-]?\d+|)/).source;
+var rnumnonpx = new RegExp( '^(' + pnum + ')(?!px)[a-z%]+$', 'i');
+var rnumsplit = new RegExp( '^(' + pnum + ')(.*)$', 'i');
+var rdisplayswap = /^(none|table(?!-c[ea]).+)/;
+var styles = require('./styles');
+var support = require('./support');
+var swap = require('./swap');
+var computed = require('./computed');
+var cssExpand = [ "Top", "Right", "Bottom", "Left" ];
+
+/**
+ * Height & Width
+ */
+
+each(['width', 'height'], function(name) {
+  exports[name] = {};
+
+  exports[name].get = function(el, compute, extra) {
+    if (!compute) return;
+    // certain elements can have dimension info if we invisibly show them
+    // however, it must have a current display style that would benefit from this
+    return 0 == el.offsetWidth && rdisplayswap.test(css(el, 'display'))
+      ? swap(el, cssShow, function() { return getWidthOrHeight(el, name, extra); })
+      : getWidthOrHeight(el, name, extra);
+  }
+
+  exports[name].set = function(el, val, extra) {
+    var styles = extra && styles(el);
+    return setPositiveNumber(el, val, extra
+      ? augmentWidthOrHeight(el, name, extra, 'border-box' == css(el, 'boxSizing', false, styles), styles)
+      : 0
+    );
+  };
+
+});
+
+/**
+ * Opacity
+ */
+
+exports.opacity = {};
+exports.opacity.get = function(el, compute) {
+  if (!compute) return;
+  var ret = computed(el, 'opacity');
+  return '' == ret ? '1' : ret;
+}
+
+/**
+ * Utility: Set Positive Number
+ *
+ * @param {Element} el
+ * @param {Mixed} val
+ * @param {Number} subtract
+ * @return {Number}
+ */
+
+function setPositiveNumber(el, val, subtract) {
+  var matches = rnumsplit.exec(val);
+  return matches ?
+    // Guard against undefined 'subtract', e.g., when used as in cssHooks
+    Math.max(0, matches[1]) + (matches[2] || 'px') :
+    val;
+}
+
+/**
+ * Utility: Get the width or height
+ *
+ * @param {Element} el
+ * @param {String} prop
+ * @param {Mixed} extra
+ * @return {String}
+ */
+
+function getWidthOrHeight(el, prop, extra) {
+  // Start with offset property, which is equivalent to the border-box value
+  var valueIsBorderBox = true;
+  var val = prop === 'width' ? el.offsetWidth : el.offsetHeight;
+  var styles = computed(el);
+  var isBorderBox = support.boxSizing && css(el, 'boxSizing') === 'border-box';
+
+  // some non-html elements return undefined for offsetWidth, so check for null/undefined
+  // svg - https://bugzilla.mozilla.org/show_bug.cgi?id=649285
+  // MathML - https://bugzilla.mozilla.org/show_bug.cgi?id=491668
+  if (val <= 0 || val == null) {
+    // Fall back to computed then uncomputed css if necessary
+    val = computed(el, prop, styles);
+
+    if (val < 0 || val == null) {
+      val = el.style[prop];
+    }
+
+    // Computed unit is not pixels. Stop here and return.
+    if (rnumnonpx.test(val)) {
+      return val;
+    }
+
+    // we need the check for style in case a browser which returns unreliable values
+    // for getComputedStyle silently falls back to the reliable el.style
+    valueIsBorderBox = isBorderBox && (support.boxSizingReliable() || val === el.style[prop]);
+
+    // Normalize ', auto, and prepare for extra
+    val = parseFloat(val) || 0;
+  }
+
+  // use the active box-sizing model to add/subtract irrelevant styles
+  extra = extra || (isBorderBox ? 'border' : 'content');
+  val += augmentWidthOrHeight(el, prop, extra, valueIsBorderBox, styles);
+  return val + 'px';
+}
+
+/**
+ * Utility: Augment the width or the height
+ *
+ * @param {Element} el
+ * @param {String} prop
+ * @param {Mixed} extra
+ * @param {Boolean} isBorderBox
+ * @param {Array} styles
+ */
+
+function augmentWidthOrHeight(el, prop, extra, isBorderBox, styles) {
+  // If we already have the right measurement, avoid augmentation,
+  // Otherwise initialize for horizontal or vertical properties
+  var i = extra === (isBorderBox ? 'border' : 'content') ? 4 : 'width' == prop ? 1 : 0;
+  var val = 0;
+
+  for (; i < 4; i += 2) {
+    // both box models exclude margin, so add it if we want it
+    if (extra === 'margin') {
+      val += css(el, extra + cssExpand[i], true, styles);
+    }
+
+    if (isBorderBox) {
+      // border-box includes padding, so remove it if we want content
+      if (extra === 'content') {
+        val -= css(el, 'padding' + cssExpand[i], true, styles);
+      }
+
+      // at this point, extra isn't border nor margin, so remove border
+      if (extra !== 'margin') {
+        val -= css(el, 'border' + cssExpand[i] + 'Width', true, styles);
+      }
+    } else {
+      // at this point, extra isn't content, so add padding
+      val += css(el, 'padding' + cssExpand[i], true, styles);
+
+      // at this point, extra isn't content nor padding, so add border
+      if (extra !== 'padding') {
+        val += css(el, 'border' + cssExpand[i] + 'Width', true, styles);
+      }
+    }
+  }
+
+  return val;
+}
+
+},{"./computed":8,"./css":9,"./styles":13,"./support":14,"./swap":15,"each":25}],11:[function(require,module,exports){
+/**
+ * Module dependencies
+ */
+
+var debug = require('debug')('css:prop');
+var camelcase = require('to-camel-case');
+var vendor = require('./vendor');
+
+/**
+ * Export `prop`
+ */
+
+module.exports = prop;
+
+/**
+ * Normalize Properties
+ */
+
+var cssProps = {
+  'float': 'cssFloat' in document.documentElement.style ? 'cssFloat' : 'styleFloat'
+};
+
+/**
+ * Get the vendor prefixed property
+ *
+ * @param {String} prop
+ * @param {String} style
+ * @return {String} prop
+ * @api private
+ */
+
+function prop(prop, style) {
+  prop = cssProps[prop] || (cssProps[prop] = vendor(prop, style));
+  debug('transform property: %s => %s', prop, style);
+  return prop;
+}
+
+},{"./vendor":16,"debug":36,"to-camel-case":55}],12:[function(require,module,exports){
+/**
+ * Module Dependencies
+ */
+
+var debug = require('debug')('css:style');
+var camelcase = require('to-camel-case');
+var support = require('./support');
+var property = require('./prop');
+var hooks = require('./hooks');
+
+/**
+ * Expose `style`
+ */
+
+module.exports = style;
+
+/**
+ * Possibly-unitless properties
+ *
+ * Don't automatically add 'px' to these properties
+ */
+
+var cssNumber = {
+  "columnCount": true,
+  "fillOpacity": true,
+  "fontWeight": true,
+  "lineHeight": true,
+  "opacity": true,
+  "order": true,
+  "orphans": true,
+  "widows": true,
+  "zIndex": true,
+  "zoom": true
+};
+
+/**
+ * Set a css value
+ *
+ * @param {Element} el
+ * @param {String} prop
+ * @param {Mixed} val
+ * @param {Mixed} extra
+ */
+
+function style(el, prop, val, extra) {
+  // Don't set styles on text and comment nodes
+  if (!el || el.nodeType === 3 || el.nodeType === 8 || !el.style ) return;
+
+  var orig = camelcase(prop);
+  var style = el.style;
+  var type = typeof val;
+
+  if (!val) return get(el, prop, orig, extra);
+
+  prop = property(prop, style);
+
+  var hook = hooks[prop] || hooks[orig];
+
+  // If a number was passed in, add 'px' to the (except for certain CSS properties)
+  if ('number' == type && !cssNumber[orig]) {
+    debug('adding "px" to end of number');
+    val += 'px';
+  }
+
+  // Fixes jQuery #8908, it can be done more correctly by specifying setters in cssHooks,
+  // but it would mean to define eight (for every problematic property) identical functions
+  if (!support.clearCloneStyle && '' === val && 0 === prop.indexOf('background')) {
+    debug('set property (%s) value to "inherit"', prop);
+    style[prop] = 'inherit';
+  }
+
+  // If a hook was provided, use that value, otherwise just set the specified value
+  if (!hook || !hook.set || undefined !== (val = hook.set(el, val, extra))) {
+    // Support: Chrome, Safari
+    // Setting style to blank string required to delete "style: x !important;"
+    debug('set hook defined. setting property (%s) to %s', prop, val);
+    style[prop] = '';
+    style[prop] = val;
+  }
+
+}
+
+/**
+ * Get the style
+ *
+ * @param {Element} el
+ * @param {String} prop
+ * @param {String} orig
+ * @param {Mixed} extra
+ * @return {String}
+ */
+
+function get(el, prop, orig, extra) {
+  var style = el.style;
+  var hook = hooks[prop] || hooks[orig];
+  var ret;
+
+  if (hook && hook.get && undefined !== (ret = hook.get(el, false, extra))) {
+    debug('get hook defined, returning: %s', ret);
+    return ret;
+  }
+
+  ret = style[prop];
+  debug('getting %s', ret);
+  return ret;
+}
+
+},{"./hooks":10,"./prop":11,"./support":14,"debug":36,"to-camel-case":55}],13:[function(require,module,exports){
+/**
+ * Expose `styles`
+ */
+
+module.exports = styles;
+
+/**
+ * Get all the styles
+ *
+ * @param {Element} el
+ * @return {Array}
+ */
+
+function styles(el) {
+  if (window.getComputedStyle) {
+    return el.ownerDocument.defaultView.getComputedStyle(el, null);
+  } else {
+    return el.currentStyle;
+  }
+}
+
+},{}],14:[function(require,module,exports){
+/**
+ * Support values
+ */
+
+var reliableMarginRight;
+var boxSizingReliableVal;
+var pixelPositionVal;
+var clearCloneStyle;
+
+/**
+ * Container setup
+ */
+
+var docElem = document.documentElement;
+var container = document.createElement('div');
+var div = document.createElement('div');
+
+/**
+ * Clear clone style
+ */
+
+div.style.backgroundClip = 'content-box';
+div.cloneNode(true).style.backgroundClip = '';
+exports.clearCloneStyle = div.style.backgroundClip === 'content-box';
+
+container.style.cssText = 'border:0;width:0;height:0;position:absolute;top:0;left:-9999px;margin-top:1px';
+container.appendChild(div);
+
+/**
+ * Pixel position
+ *
+ * Webkit bug: https://bugs.webkit.org/show_bug.cgi?id=29084
+ * getComputedStyle returns percent when specified for top/left/bottom/right
+ * rather than make the css module depend on the offset module, we just check for it here
+ */
+
+exports.pixelPosition = function() {
+  if (undefined == pixelPositionVal) computePixelPositionAndBoxSizingReliable();
+  return pixelPositionVal;
+}
+
+/**
+ * Reliable box sizing
+ */
+
+exports.boxSizingReliable = function() {
+  if (undefined == boxSizingReliableVal) computePixelPositionAndBoxSizingReliable();
+  return boxSizingReliableVal;
+}
+
+/**
+ * Reliable margin right
+ *
+ * Support: Android 2.3
+ * Check if div with explicit width and no margin-right incorrectly
+ * gets computed margin-right based on width of container. (#3333)
+ * WebKit Bug 13343 - getComputedStyle returns wrong value for margin-right
+ * This support function is only executed once so no memoizing is needed.
+ *
+ * @return {Boolean}
+ */
+
+exports.reliableMarginRight = function() {
+  var ret;
+  var marginDiv = div.appendChild(document.createElement("div" ));
+
+  marginDiv.style.cssText = div.style.cssText = divReset;
+  marginDiv.style.marginRight = marginDiv.style.width = "0";
+  div.style.width = "1px";
+  docElem.appendChild(container);
+
+  ret = !parseFloat(window.getComputedStyle(marginDiv, null).marginRight);
+
+  docElem.removeChild(container);
+
+  // Clean up the div for other support tests.
+  div.innerHTML = "";
+
+  return ret;
+}
+
+/**
+ * Executing both pixelPosition & boxSizingReliable tests require only one layout
+ * so they're executed at the same time to save the second computation.
+ */
+
+function computePixelPositionAndBoxSizingReliable() {
+  // Support: Firefox, Android 2.3 (Prefixed box-sizing versions).
+  div.style.cssText = "-webkit-box-sizing:border-box;-moz-box-sizing:border-box;" +
+    "box-sizing:border-box;padding:1px;border:1px;display:block;width:4px;margin-top:1%;" +
+    "position:absolute;top:1%";
+  docElem.appendChild(container);
+
+  var divStyle = window.getComputedStyle(div, null);
+  pixelPositionVal = divStyle.top !== "1%";
+  boxSizingReliableVal = divStyle.width === "4px";
+
+  docElem.removeChild(container);
+}
+
+
+
+},{}],15:[function(require,module,exports){
+/**
+ * Export `swap`
+ */
+
+module.exports = swap;
+
+/**
+ * Initialize `swap`
+ *
+ * @param {Element} el
+ * @param {Object} options
+ * @param {Function} fn
+ * @param {Array} args
+ * @return {Mixed}
+ */
+
+function swap(el, options, fn, args) {
+  // Remember the old values, and insert the new ones
+  for (var key in options) {
+    old[key] = el.style[key];
+    el.style[key] = options[key];
+  }
+
+  ret = fn.apply(el, args || []);
+
+  // Revert the old values
+  for (key in options) {
+    el.style[key] = old[key];
+  }
+
+  return ret;
+}
+
+},{}],16:[function(require,module,exports){
+/**
+ * Module Dependencies
+ */
+
+var prefixes = ['Webkit', 'O', 'Moz', 'ms'];
+
+/**
+ * Expose `vendor`
+ */
+
+module.exports = vendor;
+
+/**
+ * Get the vendor prefix for a given property
+ *
+ * @param {String} prop
+ * @param {Object} style
+ * @return {String}
+ */
+
+function vendor(prop, style) {
+  // shortcut for names that are not vendor prefixed
+  if (style[prop]) return prop;
+
+  // check for vendor prefixed names
+  var capName = prop[0].toUpperCase() + prop.slice(1);
+  var original = prop;
+  var i = prefixes.length;
+
+  while (i--) {
+    prop = prefixes[i] + capName;
+    if (prop in style) return prop;
+  }
+
+  return original;
+}
+
+},{}],17:[function(require,module,exports){
 /**
  * Module dependencies.
  */
 
-try {
-  var query = require('query');
-} catch (err) {
-  var query = require('component-query');
-}
+var closest = require('closest')
+  , event = require('event');
 
 /**
- * Element prototype.
- */
-
-var proto = Element.prototype;
-
-/**
- * Vendor function.
- */
-
-var vendor = proto.matches
-  || proto.webkitMatchesSelector
-  || proto.mozMatchesSelector
-  || proto.msMatchesSelector
-  || proto.oMatchesSelector;
-
-/**
- * Expose `match()`.
- */
-
-module.exports = match;
-
-/**
- * Match `el` to `selector`.
+ * Delegate event `type` to `selector`
+ * and invoke `fn(e)`. A callback function
+ * is returned which may be passed to `.unbind()`.
  *
  * @param {Element} el
  * @param {String} selector
- * @return {Boolean}
+ * @param {String} type
+ * @param {Function} fn
+ * @param {Boolean} capture
+ * @return {Function}
  * @api public
  */
 
-function match(el, selector) {
-  if (!el || el.nodeType !== 1) return false;
-  if (vendor) return vendor.call(el, selector);
-  var nodes = query.all(selector, el.parentNode);
-  for (var i = 0; i < nodes.length; ++i) {
-    if (nodes[i] == el) return true;
-  }
-  return false;
-}
-
-},{"component-query":10,"query":10}],10:[function(require,module,exports){
-function one(selector, el) {
-  return el.querySelector(selector);
-}
-
-exports = module.exports = function(selector, el){
-  el = el || document;
-  return one(selector, el);
+exports.bind = function(el, selector, type, fn, capture){
+  return event.bind(el, type, function(e){
+    var target = e.target || e.srcElement;
+    e.delegateTarget = closest(target, selector, true, el);
+    if (e.delegateTarget) fn.call(el, e);
+  }, capture);
 };
 
-exports.all = function(selector, el){
-  el = el || document;
-  return el.querySelectorAll(selector);
+/**
+ * Unbind event `type`'s callback `fn`.
+ *
+ * @param {Element} el
+ * @param {String} type
+ * @param {Function} fn
+ * @param {Boolean} capture
+ * @api public
+ */
+
+exports.unbind = function(el, type, fn, capture){
+  event.unbind(el, type, fn, capture);
 };
 
-exports.engine = function(obj){
-  if (!obj.one) throw new Error('.one callback required');
-  if (!obj.all) throw new Error('.all callback required');
-  one = obj.one;
-  exports.all = obj.all;
-  return exports;
-};
-
-},{}],11:[function(require,module,exports){
+},{"closest":6,"event":27}],18:[function(require,module,exports){
 /**
  * Module dependencies.
  */
@@ -3760,7 +4234,7 @@ function isHTML(str) {
   return !!(match && match[1]);
 }
 
-},{"./lib/attributes":12,"./lib/classes":13,"./lib/events":14,"./lib/manipulate":15,"./lib/traverse":16,"domify":43,"each":37,"event":39,"keys":45,"query":40,"trim":50}],12:[function(require,module,exports){
+},{"./lib/attributes":19,"./lib/classes":20,"./lib/events":21,"./lib/manipulate":22,"./lib/traverse":23,"domify":42,"each":25,"event":27,"keys":48,"query":32,"trim":59}],19:[function(require,module,exports){
 /**
  * Module Dependencies
  */
@@ -3848,7 +4322,7 @@ exports.value = function(val){
   });
 };
 
-},{"value":41}],13:[function(require,module,exports){
+},{"value":34}],20:[function(require,module,exports){
 /**
  * Module Dependencies
  */
@@ -3931,7 +4405,7 @@ exports.hasClass = function(name){
   return false;
 };
 
-},{"classes":17}],14:[function(require,module,exports){
+},{"classes":24}],21:[function(require,module,exports){
 /**
  * Module Dependencies
  */
@@ -3995,7 +4469,7 @@ exports.off = function(event, selector, fn, capture){
   });
 };
 
-},{"delegate":36,"event":39}],15:[function(require,module,exports){
+},{"delegate":17,"event":27}],22:[function(require,module,exports){
 /**
  * Module Dependencies
  */
@@ -4282,7 +4756,7 @@ exports.focus = function(){
   return this;
 };
 
-},{"css":19,"text":47,"value":41}],16:[function(require,module,exports){
+},{"css":7,"text":54,"value":34}],23:[function(require,module,exports){
 /**
  * Module Dependencies
  */
@@ -4574,7 +5048,7 @@ each([
   };
 });
 
-},{"each":37,"matches-selector":44,"to-function":48,"traverse":51}],17:[function(require,module,exports){
+},{"each":25,"matches-selector":46,"to-function":56,"traverse":62}],24:[function(require,module,exports){
 /**
  * Module dependencies.
  */
@@ -4762,1441 +5236,7 @@ ClassList.prototype.contains = function(name){
     : !! ~index(this.array(), name);
 };
 
-},{"indexof":18}],18:[function(require,module,exports){
-arguments[4][7][0].apply(exports,arguments)
-},{"dup":7}],19:[function(require,module,exports){
-/**
- * Module Dependencies
- */
-
-var debug = require('debug')('css');
-var set = require('./lib/style');
-var get = require('./lib/css');
-
-/**
- * Expose `css`
- */
-
-module.exports = css;
-
-/**
- * Get and set css values
- *
- * @param {Element} el
- * @param {String|Object} prop
- * @param {Mixed} val
- * @return {Element} el
- * @api public
- */
-
-function css(el, prop, val) {
-  if (!el) return;
-
-  if (undefined !== val) {
-    var obj = {};
-    obj[prop] = val;
-    debug('setting styles %j', obj);
-    return setStyles(el, obj);
-  }
-
-  if ('object' == typeof prop) {
-    debug('setting styles %j', prop);
-    return setStyles(el, prop);
-  }
-
-  debug('getting %s', prop);
-  return get(el, prop);
-}
-
-/**
- * Set the styles on an element
- *
- * @param {Element} el
- * @param {Object} props
- * @return {Element} el
- */
-
-function setStyles(el, props) {
-  for (var prop in props) {
-    set(el, prop, props[prop]);
-  }
-
-  return el;
-}
-
-},{"./lib/css":21,"./lib/style":24,"debug":30}],20:[function(require,module,exports){
-/**
- * Module Dependencies
- */
-
-var debug = require('debug')('css:computed');
-var withinDocument = require('within-document');
-var styles = require('./styles');
-
-/**
- * Expose `computed`
- */
-
-module.exports = computed;
-
-/**
- * Get the computed style
- *
- * @param {Element} el
- * @param {String} prop
- * @param {Array} precomputed (optional)
- * @return {Array}
- * @api private
- */
-
-function computed(el, prop, precomputed) {
-  var computed = precomputed || styles(el);
-  var ret;
-  
-  if (!computed) return;
-
-  if (computed.getPropertyValue) {
-    ret = computed.getPropertyValue(prop) || computed[prop];
-  } else {
-    ret = computed[prop];
-  }
-
-  if ('' === ret && !withinDocument(el)) {
-    debug('element not within document, try finding from style attribute');
-    var style = require('./style');
-    ret = style(el, prop);
-  }
-
-  debug('computed value of %s: %s', prop, ret);
-
-  // Support: IE
-  // IE returns zIndex value as an integer.
-  return undefined === ret ? ret : ret + '';
-}
-
-},{"./style":24,"./styles":25,"debug":30,"within-document":35}],21:[function(require,module,exports){
-/**
- * Module Dependencies
- */
-
-var debug = require('debug')('css:css');
-var camelcase = require('to-camel-case');
-var computed = require('./computed');
-var property = require('./prop');
-
-/**
- * Expose `css`
- */
-
-module.exports = css;
-
-/**
- * CSS Normal Transforms
- */
-
-var cssNormalTransform = {
-  letterSpacing: 0,
-  fontWeight: 400
-};
-
-/**
- * Get a CSS value
- *
- * @param {Element} el
- * @param {String} prop
- * @param {Mixed} extra
- * @param {Array} styles
- * @return {String}
- */
-
-function css(el, prop, extra, styles) {
-  var hooks = require('./hooks');
-  var orig = camelcase(prop);
-  var style = el.style;
-  var val;
-
-  prop = property(prop, style);
-  var hook = hooks[prop] || hooks[orig];
-
-  // If a hook was provided get the computed value from there
-  if (hook && hook.get) {
-    debug('get hook provided. use that');
-    val = hook.get(el, true, extra);
-  }
-
-  // Otherwise, if a way to get the computed value exists, use that
-  if (undefined == val) {
-    debug('fetch the computed value of %s', prop);
-    val = computed(el, prop);
-  }
-
-  if ('normal' == val && cssNormalTransform[prop]) {
-    val = cssNormalTransform[prop];
-    debug('normal => %s', val);
-  }
-
-  // Return, converting to number if forced or a qualifier was provided and val looks numeric
-  if ('' == extra || extra) {
-    debug('converting value: %s into a number', val);
-    var num = parseFloat(val);
-    return true === extra || isNumeric(num) ? num || 0 : val;
-  }
-
-  return val;
-}
-
-/**
- * Is Numeric
- *
- * @param {Mixed} obj
- * @return {Boolean}
- */
-
-function isNumeric(obj) {
-  return !isNan(parseFloat(obj)) && isFinite(obj);
-}
-
-},{"./computed":20,"./hooks":22,"./prop":23,"debug":30,"to-camel-case":32}],22:[function(require,module,exports){
-/**
- * Module Dependencies
- */
-
-var each = require('each');
-var css = require('./css');
-var cssShow = { position: 'absolute', visibility: 'hidden', display: 'block' };
-var pnum = (/[+-]?(?:\d*\.|)\d+(?:[eE][+-]?\d+|)/).source;
-var rnumnonpx = new RegExp( '^(' + pnum + ')(?!px)[a-z%]+$', 'i');
-var rnumsplit = new RegExp( '^(' + pnum + ')(.*)$', 'i');
-var rdisplayswap = /^(none|table(?!-c[ea]).+)/;
-var styles = require('./styles');
-var support = require('./support');
-var swap = require('./swap');
-var computed = require('./computed');
-var cssExpand = [ "Top", "Right", "Bottom", "Left" ];
-
-/**
- * Height & Width
- */
-
-each(['width', 'height'], function(name) {
-  exports[name] = {};
-
-  exports[name].get = function(el, compute, extra) {
-    if (!compute) return;
-    // certain elements can have dimension info if we invisibly show them
-    // however, it must have a current display style that would benefit from this
-    return 0 == el.offsetWidth && rdisplayswap.test(css(el, 'display'))
-      ? swap(el, cssShow, function() { return getWidthOrHeight(el, name, extra); })
-      : getWidthOrHeight(el, name, extra);
-  }
-
-  exports[name].set = function(el, val, extra) {
-    var styles = extra && styles(el);
-    return setPositiveNumber(el, val, extra
-      ? augmentWidthOrHeight(el, name, extra, 'border-box' == css(el, 'boxSizing', false, styles), styles)
-      : 0
-    );
-  };
-
-});
-
-/**
- * Opacity
- */
-
-exports.opacity = {};
-exports.opacity.get = function(el, compute) {
-  if (!compute) return;
-  var ret = computed(el, 'opacity');
-  return '' == ret ? '1' : ret;
-}
-
-/**
- * Utility: Set Positive Number
- *
- * @param {Element} el
- * @param {Mixed} val
- * @param {Number} subtract
- * @return {Number}
- */
-
-function setPositiveNumber(el, val, subtract) {
-  var matches = rnumsplit.exec(val);
-  return matches ?
-    // Guard against undefined 'subtract', e.g., when used as in cssHooks
-    Math.max(0, matches[1]) + (matches[2] || 'px') :
-    val;
-}
-
-/**
- * Utility: Get the width or height
- *
- * @param {Element} el
- * @param {String} prop
- * @param {Mixed} extra
- * @return {String}
- */
-
-function getWidthOrHeight(el, prop, extra) {
-  // Start with offset property, which is equivalent to the border-box value
-  var valueIsBorderBox = true;
-  var val = prop === 'width' ? el.offsetWidth : el.offsetHeight;
-  var styles = computed(el);
-  var isBorderBox = support.boxSizing && css(el, 'boxSizing') === 'border-box';
-
-  // some non-html elements return undefined for offsetWidth, so check for null/undefined
-  // svg - https://bugzilla.mozilla.org/show_bug.cgi?id=649285
-  // MathML - https://bugzilla.mozilla.org/show_bug.cgi?id=491668
-  if (val <= 0 || val == null) {
-    // Fall back to computed then uncomputed css if necessary
-    val = computed(el, prop, styles);
-
-    if (val < 0 || val == null) {
-      val = el.style[prop];
-    }
-
-    // Computed unit is not pixels. Stop here and return.
-    if (rnumnonpx.test(val)) {
-      return val;
-    }
-
-    // we need the check for style in case a browser which returns unreliable values
-    // for getComputedStyle silently falls back to the reliable el.style
-    valueIsBorderBox = isBorderBox && (support.boxSizingReliable() || val === el.style[prop]);
-
-    // Normalize ', auto, and prepare for extra
-    val = parseFloat(val) || 0;
-  }
-
-  // use the active box-sizing model to add/subtract irrelevant styles
-  extra = extra || (isBorderBox ? 'border' : 'content');
-  val += augmentWidthOrHeight(el, prop, extra, valueIsBorderBox, styles);
-  return val + 'px';
-}
-
-/**
- * Utility: Augment the width or the height
- *
- * @param {Element} el
- * @param {String} prop
- * @param {Mixed} extra
- * @param {Boolean} isBorderBox
- * @param {Array} styles
- */
-
-function augmentWidthOrHeight(el, prop, extra, isBorderBox, styles) {
-  // If we already have the right measurement, avoid augmentation,
-  // Otherwise initialize for horizontal or vertical properties
-  var i = extra === (isBorderBox ? 'border' : 'content') ? 4 : 'width' == prop ? 1 : 0;
-  var val = 0;
-
-  for (; i < 4; i += 2) {
-    // both box models exclude margin, so add it if we want it
-    if (extra === 'margin') {
-      val += css(el, extra + cssExpand[i], true, styles);
-    }
-
-    if (isBorderBox) {
-      // border-box includes padding, so remove it if we want content
-      if (extra === 'content') {
-        val -= css(el, 'padding' + cssExpand[i], true, styles);
-      }
-
-      // at this point, extra isn't border nor margin, so remove border
-      if (extra !== 'margin') {
-        val -= css(el, 'border' + cssExpand[i] + 'Width', true, styles);
-      }
-    } else {
-      // at this point, extra isn't content, so add padding
-      val += css(el, 'padding' + cssExpand[i], true, styles);
-
-      // at this point, extra isn't content nor padding, so add border
-      if (extra !== 'padding') {
-        val += css(el, 'border' + cssExpand[i] + 'Width', true, styles);
-      }
-    }
-  }
-
-  return val;
-}
-
-},{"./computed":20,"./css":21,"./styles":25,"./support":26,"./swap":27,"each":37}],23:[function(require,module,exports){
-/**
- * Module dependencies
- */
-
-var debug = require('debug')('css:prop');
-var camelcase = require('to-camel-case');
-var vendor = require('./vendor');
-
-/**
- * Export `prop`
- */
-
-module.exports = prop;
-
-/**
- * Normalize Properties
- */
-
-var cssProps = {
-  'float': 'cssFloat' in document.documentElement.style ? 'cssFloat' : 'styleFloat'
-};
-
-/**
- * Get the vendor prefixed property
- *
- * @param {String} prop
- * @param {String} style
- * @return {String} prop
- * @api private
- */
-
-function prop(prop, style) {
-  prop = cssProps[prop] || (cssProps[prop] = vendor(prop, style));
-  debug('transform property: %s => %s', prop, style);
-  return prop;
-}
-
-},{"./vendor":28,"debug":30,"to-camel-case":32}],24:[function(require,module,exports){
-/**
- * Module Dependencies
- */
-
-var debug = require('debug')('css:style');
-var camelcase = require('to-camel-case');
-var support = require('./support');
-var property = require('./prop');
-var hooks = require('./hooks');
-
-/**
- * Expose `style`
- */
-
-module.exports = style;
-
-/**
- * Possibly-unitless properties
- *
- * Don't automatically add 'px' to these properties
- */
-
-var cssNumber = {
-  "columnCount": true,
-  "fillOpacity": true,
-  "fontWeight": true,
-  "lineHeight": true,
-  "opacity": true,
-  "order": true,
-  "orphans": true,
-  "widows": true,
-  "zIndex": true,
-  "zoom": true
-};
-
-/**
- * Set a css value
- *
- * @param {Element} el
- * @param {String} prop
- * @param {Mixed} val
- * @param {Mixed} extra
- */
-
-function style(el, prop, val, extra) {
-  // Don't set styles on text and comment nodes
-  if (!el || el.nodeType === 3 || el.nodeType === 8 || !el.style ) return;
-
-  var orig = camelcase(prop);
-  var style = el.style;
-  var type = typeof val;
-
-  if (!val) return get(el, prop, orig, extra);
-
-  prop = property(prop, style);
-
-  var hook = hooks[prop] || hooks[orig];
-
-  // If a number was passed in, add 'px' to the (except for certain CSS properties)
-  if ('number' == type && !cssNumber[orig]) {
-    debug('adding "px" to end of number');
-    val += 'px';
-  }
-
-  // Fixes jQuery #8908, it can be done more correctly by specifying setters in cssHooks,
-  // but it would mean to define eight (for every problematic property) identical functions
-  if (!support.clearCloneStyle && '' === val && 0 === prop.indexOf('background')) {
-    debug('set property (%s) value to "inherit"', prop);
-    style[prop] = 'inherit';
-  }
-
-  // If a hook was provided, use that value, otherwise just set the specified value
-  if (!hook || !hook.set || undefined !== (val = hook.set(el, val, extra))) {
-    // Support: Chrome, Safari
-    // Setting style to blank string required to delete "style: x !important;"
-    debug('set hook defined. setting property (%s) to %s', prop, val);
-    style[prop] = '';
-    style[prop] = val;
-  }
-
-}
-
-/**
- * Get the style
- *
- * @param {Element} el
- * @param {String} prop
- * @param {String} orig
- * @param {Mixed} extra
- * @return {String}
- */
-
-function get(el, prop, orig, extra) {
-  var style = el.style;
-  var hook = hooks[prop] || hooks[orig];
-  var ret;
-
-  if (hook && hook.get && undefined !== (ret = hook.get(el, false, extra))) {
-    debug('get hook defined, returning: %s', ret);
-    return ret;
-  }
-
-  ret = style[prop];
-  debug('getting %s', ret);
-  return ret;
-}
-
-},{"./hooks":22,"./prop":23,"./support":26,"debug":30,"to-camel-case":32}],25:[function(require,module,exports){
-/**
- * Expose `styles`
- */
-
-module.exports = styles;
-
-/**
- * Get all the styles
- *
- * @param {Element} el
- * @return {Array}
- */
-
-function styles(el) {
-  if (window.getComputedStyle) {
-    return el.ownerDocument.defaultView.getComputedStyle(el, null);
-  } else {
-    return el.currentStyle;
-  }
-}
-
-},{}],26:[function(require,module,exports){
-/**
- * Support values
- */
-
-var reliableMarginRight;
-var boxSizingReliableVal;
-var pixelPositionVal;
-var clearCloneStyle;
-
-/**
- * Container setup
- */
-
-var docElem = document.documentElement;
-var container = document.createElement('div');
-var div = document.createElement('div');
-
-/**
- * Clear clone style
- */
-
-div.style.backgroundClip = 'content-box';
-div.cloneNode(true).style.backgroundClip = '';
-exports.clearCloneStyle = div.style.backgroundClip === 'content-box';
-
-container.style.cssText = 'border:0;width:0;height:0;position:absolute;top:0;left:-9999px;margin-top:1px';
-container.appendChild(div);
-
-/**
- * Pixel position
- *
- * Webkit bug: https://bugs.webkit.org/show_bug.cgi?id=29084
- * getComputedStyle returns percent when specified for top/left/bottom/right
- * rather than make the css module depend on the offset module, we just check for it here
- */
-
-exports.pixelPosition = function() {
-  if (undefined == pixelPositionVal) computePixelPositionAndBoxSizingReliable();
-  return pixelPositionVal;
-}
-
-/**
- * Reliable box sizing
- */
-
-exports.boxSizingReliable = function() {
-  if (undefined == boxSizingReliableVal) computePixelPositionAndBoxSizingReliable();
-  return boxSizingReliableVal;
-}
-
-/**
- * Reliable margin right
- *
- * Support: Android 2.3
- * Check if div with explicit width and no margin-right incorrectly
- * gets computed margin-right based on width of container. (#3333)
- * WebKit Bug 13343 - getComputedStyle returns wrong value for margin-right
- * This support function is only executed once so no memoizing is needed.
- *
- * @return {Boolean}
- */
-
-exports.reliableMarginRight = function() {
-  var ret;
-  var marginDiv = div.appendChild(document.createElement("div" ));
-
-  marginDiv.style.cssText = div.style.cssText = divReset;
-  marginDiv.style.marginRight = marginDiv.style.width = "0";
-  div.style.width = "1px";
-  docElem.appendChild(container);
-
-  ret = !parseFloat(window.getComputedStyle(marginDiv, null).marginRight);
-
-  docElem.removeChild(container);
-
-  // Clean up the div for other support tests.
-  div.innerHTML = "";
-
-  return ret;
-}
-
-/**
- * Executing both pixelPosition & boxSizingReliable tests require only one layout
- * so they're executed at the same time to save the second computation.
- */
-
-function computePixelPositionAndBoxSizingReliable() {
-  // Support: Firefox, Android 2.3 (Prefixed box-sizing versions).
-  div.style.cssText = "-webkit-box-sizing:border-box;-moz-box-sizing:border-box;" +
-    "box-sizing:border-box;padding:1px;border:1px;display:block;width:4px;margin-top:1%;" +
-    "position:absolute;top:1%";
-  docElem.appendChild(container);
-
-  var divStyle = window.getComputedStyle(div, null);
-  pixelPositionVal = divStyle.top !== "1%";
-  boxSizingReliableVal = divStyle.width === "4px";
-
-  docElem.removeChild(container);
-}
-
-
-
-},{}],27:[function(require,module,exports){
-/**
- * Export `swap`
- */
-
-module.exports = swap;
-
-/**
- * Initialize `swap`
- *
- * @param {Element} el
- * @param {Object} options
- * @param {Function} fn
- * @param {Array} args
- * @return {Mixed}
- */
-
-function swap(el, options, fn, args) {
-  // Remember the old values, and insert the new ones
-  for (var key in options) {
-    old[key] = el.style[key];
-    el.style[key] = options[key];
-  }
-
-  ret = fn.apply(el, args || []);
-
-  // Revert the old values
-  for (key in options) {
-    el.style[key] = old[key];
-  }
-
-  return ret;
-}
-
-},{}],28:[function(require,module,exports){
-/**
- * Module Dependencies
- */
-
-var prefixes = ['Webkit', 'O', 'Moz', 'ms'];
-
-/**
- * Expose `vendor`
- */
-
-module.exports = vendor;
-
-/**
- * Get the vendor prefix for a given property
- *
- * @param {String} prop
- * @param {Object} style
- * @return {String}
- */
-
-function vendor(prop, style) {
-  // shortcut for names that are not vendor prefixed
-  if (style[prop]) return prop;
-
-  // check for vendor prefixed names
-  var capName = prop[0].toUpperCase() + prop.slice(1);
-  var original = prop;
-  var i = prefixes.length;
-
-  while (i--) {
-    prop = prefixes[i] + capName;
-    if (prop in style) return prop;
-  }
-
-  return original;
-}
-
-},{}],29:[function(require,module,exports){
-/**
- * Helpers.
- */
-
-var s = 1000;
-var m = s * 60;
-var h = m * 60;
-var d = h * 24;
-var y = d * 365.25;
-
-/**
- * Parse or format the given `val`.
- *
- * Options:
- *
- *  - `long` verbose formatting [false]
- *
- * @param {String|Number} val
- * @param {Object} [options]
- * @throws {Error} throw an error if val is not a non-empty string or a number
- * @return {String|Number}
- * @api public
- */
-
-module.exports = function(val, options) {
-  options = options || {};
-  var type = typeof val;
-  if (type === 'string' && val.length > 0) {
-    return parse(val);
-  } else if (type === 'number' && isNaN(val) === false) {
-    return options.long ? fmtLong(val) : fmtShort(val);
-  }
-  throw new Error(
-    'val is not a non-empty string or a valid number. val=' +
-      JSON.stringify(val)
-  );
-};
-
-/**
- * Parse the given `str` and return milliseconds.
- *
- * @param {String} str
- * @return {Number}
- * @api private
- */
-
-function parse(str) {
-  str = String(str);
-  if (str.length > 100) {
-    return;
-  }
-  var match = /^((?:\d+)?\.?\d+) *(milliseconds?|msecs?|ms|seconds?|secs?|s|minutes?|mins?|m|hours?|hrs?|h|days?|d|years?|yrs?|y)?$/i.exec(
-    str
-  );
-  if (!match) {
-    return;
-  }
-  var n = parseFloat(match[1]);
-  var type = (match[2] || 'ms').toLowerCase();
-  switch (type) {
-    case 'years':
-    case 'year':
-    case 'yrs':
-    case 'yr':
-    case 'y':
-      return n * y;
-    case 'days':
-    case 'day':
-    case 'd':
-      return n * d;
-    case 'hours':
-    case 'hour':
-    case 'hrs':
-    case 'hr':
-    case 'h':
-      return n * h;
-    case 'minutes':
-    case 'minute':
-    case 'mins':
-    case 'min':
-    case 'm':
-      return n * m;
-    case 'seconds':
-    case 'second':
-    case 'secs':
-    case 'sec':
-    case 's':
-      return n * s;
-    case 'milliseconds':
-    case 'millisecond':
-    case 'msecs':
-    case 'msec':
-    case 'ms':
-      return n;
-    default:
-      return undefined;
-  }
-}
-
-/**
- * Short format for `ms`.
- *
- * @param {Number} ms
- * @return {String}
- * @api private
- */
-
-function fmtShort(ms) {
-  if (ms >= d) {
-    return Math.round(ms / d) + 'd';
-  }
-  if (ms >= h) {
-    return Math.round(ms / h) + 'h';
-  }
-  if (ms >= m) {
-    return Math.round(ms / m) + 'm';
-  }
-  if (ms >= s) {
-    return Math.round(ms / s) + 's';
-  }
-  return ms + 'ms';
-}
-
-/**
- * Long format for `ms`.
- *
- * @param {Number} ms
- * @return {String}
- * @api private
- */
-
-function fmtLong(ms) {
-  return plural(ms, d, 'day') ||
-    plural(ms, h, 'hour') ||
-    plural(ms, m, 'minute') ||
-    plural(ms, s, 'second') ||
-    ms + ' ms';
-}
-
-/**
- * Pluralization helper.
- */
-
-function plural(ms, n, name) {
-  if (ms < n) {
-    return;
-  }
-  if (ms < n * 1.5) {
-    return Math.floor(ms / n) + ' ' + name;
-  }
-  return Math.ceil(ms / n) + ' ' + name + 's';
-}
-
-},{}],30:[function(require,module,exports){
-(function (process){
-/**
- * This is the web browser implementation of `debug()`.
- *
- * Expose `debug()` as the module.
- */
-
-exports = module.exports = require('./debug');
-exports.log = log;
-exports.formatArgs = formatArgs;
-exports.save = save;
-exports.load = load;
-exports.useColors = useColors;
-exports.storage = 'undefined' != typeof chrome
-               && 'undefined' != typeof chrome.storage
-                  ? chrome.storage.local
-                  : localstorage();
-
-/**
- * Colors.
- */
-
-exports.colors = [
-  'lightseagreen',
-  'forestgreen',
-  'goldenrod',
-  'dodgerblue',
-  'darkorchid',
-  'crimson'
-];
-
-/**
- * Currently only WebKit-based Web Inspectors, Firefox >= v31,
- * and the Firebug extension (any Firefox version) are known
- * to support "%c" CSS customizations.
- *
- * TODO: add a `localStorage` variable to explicitly enable/disable colors
- */
-
-function useColors() {
-  // NB: In an Electron preload script, document will be defined but not fully
-  // initialized. Since we know we're in Chrome, we'll just detect this case
-  // explicitly
-  if (typeof window !== 'undefined' && window.process && window.process.type === 'renderer') {
-    return true;
-  }
-
-  // is webkit? http://stackoverflow.com/a/16459606/376773
-  // document is undefined in react-native: https://github.com/facebook/react-native/pull/1632
-  return (typeof document !== 'undefined' && document.documentElement && document.documentElement.style && document.documentElement.style.WebkitAppearance) ||
-    // is firebug? http://stackoverflow.com/a/398120/376773
-    (typeof window !== 'undefined' && window.console && (window.console.firebug || (window.console.exception && window.console.table))) ||
-    // is firefox >= v31?
-    // https://developer.mozilla.org/en-US/docs/Tools/Web_Console#Styling_messages
-    (typeof navigator !== 'undefined' && navigator.userAgent && navigator.userAgent.toLowerCase().match(/firefox\/(\d+)/) && parseInt(RegExp.$1, 10) >= 31) ||
-    // double check webkit in userAgent just in case we are in a worker
-    (typeof navigator !== 'undefined' && navigator.userAgent && navigator.userAgent.toLowerCase().match(/applewebkit\/(\d+)/));
-}
-
-/**
- * Map %j to `JSON.stringify()`, since no Web Inspectors do that by default.
- */
-
-exports.formatters.j = function(v) {
-  try {
-    return JSON.stringify(v);
-  } catch (err) {
-    return '[UnexpectedJSONParseError]: ' + err.message;
-  }
-};
-
-
-/**
- * Colorize log arguments if enabled.
- *
- * @api public
- */
-
-function formatArgs(args) {
-  var useColors = this.useColors;
-
-  args[0] = (useColors ? '%c' : '')
-    + this.namespace
-    + (useColors ? ' %c' : ' ')
-    + args[0]
-    + (useColors ? '%c ' : ' ')
-    + '+' + exports.humanize(this.diff);
-
-  if (!useColors) return;
-
-  var c = 'color: ' + this.color;
-  args.splice(1, 0, c, 'color: inherit')
-
-  // the final "%c" is somewhat tricky, because there could be other
-  // arguments passed either before or after the %c, so we need to
-  // figure out the correct index to insert the CSS into
-  var index = 0;
-  var lastC = 0;
-  args[0].replace(/%[a-zA-Z%]/g, function(match) {
-    if ('%%' === match) return;
-    index++;
-    if ('%c' === match) {
-      // we only are interested in the *last* %c
-      // (the user may have provided their own)
-      lastC = index;
-    }
-  });
-
-  args.splice(lastC, 0, c);
-}
-
-/**
- * Invokes `console.log()` when available.
- * No-op when `console.log` is not a "function".
- *
- * @api public
- */
-
-function log() {
-  // this hackery is required for IE8/9, where
-  // the `console.log` function doesn't have 'apply'
-  return 'object' === typeof console
-    && console.log
-    && Function.prototype.apply.call(console.log, console, arguments);
-}
-
-/**
- * Save `namespaces`.
- *
- * @param {String} namespaces
- * @api private
- */
-
-function save(namespaces) {
-  try {
-    if (null == namespaces) {
-      exports.storage.removeItem('debug');
-    } else {
-      exports.storage.debug = namespaces;
-    }
-  } catch(e) {}
-}
-
-/**
- * Load `namespaces`.
- *
- * @return {String} returns the previously persisted debug modes
- * @api private
- */
-
-function load() {
-  var r;
-  try {
-    r = exports.storage.debug;
-  } catch(e) {}
-
-  // If debug isn't set in LS, and we're in Electron, try to load $DEBUG
-  if (!r && typeof process !== 'undefined' && 'env' in process) {
-    r = process.env.DEBUG;
-  }
-
-  return r;
-}
-
-/**
- * Enable namespaces listed in `localStorage.debug` initially.
- */
-
-exports.enable(load());
-
-/**
- * Localstorage attempts to return the localstorage.
- *
- * This is necessary because safari throws
- * when a user disables cookies/localstorage
- * and you attempt to access it.
- *
- * @return {LocalStorage}
- * @api private
- */
-
-function localstorage() {
-  try {
-    return window.localStorage;
-  } catch (e) {}
-}
-
-}).call(this,require('_process'))
-},{"./debug":31,"_process":1}],31:[function(require,module,exports){
-
-/**
- * This is the common logic for both the Node.js and web browser
- * implementations of `debug()`.
- *
- * Expose `debug()` as the module.
- */
-
-exports = module.exports = createDebug.debug = createDebug['default'] = createDebug;
-exports.coerce = coerce;
-exports.disable = disable;
-exports.enable = enable;
-exports.enabled = enabled;
-exports.humanize = require('ms');
-
-/**
- * The currently active debug mode names, and names to skip.
- */
-
-exports.names = [];
-exports.skips = [];
-
-/**
- * Map of special "%n" handling functions, for the debug "format" argument.
- *
- * Valid key names are a single, lower or upper-case letter, i.e. "n" and "N".
- */
-
-exports.formatters = {};
-
-/**
- * Previous log timestamp.
- */
-
-var prevTime;
-
-/**
- * Select a color.
- * @param {String} namespace
- * @return {Number}
- * @api private
- */
-
-function selectColor(namespace) {
-  var hash = 0, i;
-
-  for (i in namespace) {
-    hash  = ((hash << 5) - hash) + namespace.charCodeAt(i);
-    hash |= 0; // Convert to 32bit integer
-  }
-
-  return exports.colors[Math.abs(hash) % exports.colors.length];
-}
-
-/**
- * Create a debugger with the given `namespace`.
- *
- * @param {String} namespace
- * @return {Function}
- * @api public
- */
-
-function createDebug(namespace) {
-
-  function debug() {
-    // disabled?
-    if (!debug.enabled) return;
-
-    var self = debug;
-
-    // set `diff` timestamp
-    var curr = +new Date();
-    var ms = curr - (prevTime || curr);
-    self.diff = ms;
-    self.prev = prevTime;
-    self.curr = curr;
-    prevTime = curr;
-
-    // turn the `arguments` into a proper Array
-    var args = new Array(arguments.length);
-    for (var i = 0; i < args.length; i++) {
-      args[i] = arguments[i];
-    }
-
-    args[0] = exports.coerce(args[0]);
-
-    if ('string' !== typeof args[0]) {
-      // anything else let's inspect with %O
-      args.unshift('%O');
-    }
-
-    // apply any `formatters` transformations
-    var index = 0;
-    args[0] = args[0].replace(/%([a-zA-Z%])/g, function(match, format) {
-      // if we encounter an escaped % then don't increase the array index
-      if (match === '%%') return match;
-      index++;
-      var formatter = exports.formatters[format];
-      if ('function' === typeof formatter) {
-        var val = args[index];
-        match = formatter.call(self, val);
-
-        // now we need to remove `args[index]` since it's inlined in the `format`
-        args.splice(index, 1);
-        index--;
-      }
-      return match;
-    });
-
-    // apply env-specific formatting (colors, etc.)
-    exports.formatArgs.call(self, args);
-
-    var logFn = debug.log || exports.log || console.log.bind(console);
-    logFn.apply(self, args);
-  }
-
-  debug.namespace = namespace;
-  debug.enabled = exports.enabled(namespace);
-  debug.useColors = exports.useColors();
-  debug.color = selectColor(namespace);
-
-  // env-specific initialization logic for debug instances
-  if ('function' === typeof exports.init) {
-    exports.init(debug);
-  }
-
-  return debug;
-}
-
-/**
- * Enables a debug mode by namespaces. This can include modes
- * separated by a colon and wildcards.
- *
- * @param {String} namespaces
- * @api public
- */
-
-function enable(namespaces) {
-  exports.save(namespaces);
-
-  exports.names = [];
-  exports.skips = [];
-
-  var split = (typeof namespaces === 'string' ? namespaces : '').split(/[\s,]+/);
-  var len = split.length;
-
-  for (var i = 0; i < len; i++) {
-    if (!split[i]) continue; // ignore empty strings
-    namespaces = split[i].replace(/\*/g, '.*?');
-    if (namespaces[0] === '-') {
-      exports.skips.push(new RegExp('^' + namespaces.substr(1) + '$'));
-    } else {
-      exports.names.push(new RegExp('^' + namespaces + '$'));
-    }
-  }
-}
-
-/**
- * Disable debug output.
- *
- * @api public
- */
-
-function disable() {
-  exports.enable('');
-}
-
-/**
- * Returns true if the given mode name is enabled, false otherwise.
- *
- * @param {String} name
- * @return {Boolean}
- * @api public
- */
-
-function enabled(name) {
-  var i, len;
-  for (i = 0, len = exports.skips.length; i < len; i++) {
-    if (exports.skips[i].test(name)) {
-      return false;
-    }
-  }
-  for (i = 0, len = exports.names.length; i < len; i++) {
-    if (exports.names[i].test(name)) {
-      return true;
-    }
-  }
-  return false;
-}
-
-/**
- * Coerce `val`.
- *
- * @param {Mixed} val
- * @return {Mixed}
- * @api private
- */
-
-function coerce(val) {
-  if (val instanceof Error) return val.stack || val.message;
-  return val;
-}
-
-},{"ms":29}],32:[function(require,module,exports){
-
-var toSpace = require('to-space-case');
-
-
-/**
- * Expose `toCamelCase`.
- */
-
-module.exports = toCamelCase;
-
-
-/**
- * Convert a `string` to camel case.
- *
- * @param {String} string
- * @return {String}
- */
-
-
-function toCamelCase (string) {
-  return toSpace(string).replace(/\s(\w)/g, function (matches, letter) {
-    return letter.toUpperCase();
-  });
-}
-},{"to-space-case":33}],33:[function(require,module,exports){
-
-var clean = require('to-no-case');
-
-
-/**
- * Expose `toSpaceCase`.
- */
-
-module.exports = toSpaceCase;
-
-
-/**
- * Convert a `string` to space case.
- *
- * @param {String} string
- * @return {String}
- */
-
-
-function toSpaceCase (string) {
-  return clean(string).replace(/[\W_]+(.|$)/g, function (matches, match) {
-    return match ? ' ' + match : '';
-  });
-}
-},{"to-no-case":34}],34:[function(require,module,exports){
-
-/**
- * Expose `toNoCase`.
- */
-
-module.exports = toNoCase;
-
-
-/**
- * Test whether a string is camel-case.
- */
-
-var hasSpace = /\s/;
-var hasCamel = /[a-z][A-Z]/;
-var hasSeparator = /[\W_]/;
-
-
-/**
- * Remove any starting case from a `string`, like camel or snake, but keep
- * spaces and punctuation that may be important otherwise.
- *
- * @param {String} string
- * @return {String}
- */
-
-function toNoCase (string) {
-  if (hasSpace.test(string)) return string.toLowerCase();
-
-  if (hasSeparator.test(string)) string = unseparate(string);
-  if (hasCamel.test(string)) string = uncamelize(string);
-  return string.toLowerCase();
-}
-
-
-/**
- * Separator splitter.
- */
-
-var separatorSplitter = /[\W_]+(.|$)/g;
-
-
-/**
- * Un-separate a `string`.
- *
- * @param {String} string
- * @return {String}
- */
-
-function unseparate (string) {
-  return string.replace(separatorSplitter, function (m, next) {
-    return next ? ' ' + next : '';
-  });
-}
-
-
-/**
- * Camelcase splitter.
- */
-
-var camelSplitter = /(.)([A-Z]+)/g;
-
-
-/**
- * Un-camelcase a `string`.
- *
- * @param {String} string
- * @return {String}
- */
-
-function uncamelize (string) {
-  return string.replace(camelSplitter, function (m, previous, uppers) {
-    return previous + ' ' + uppers.toLowerCase().split('').join(' ');
-  });
-}
-},{}],35:[function(require,module,exports){
-
-/**
- * Check if `el` is within the document.
- *
- * @param {Element} el
- * @return {Boolean}
- * @api private
- */
-
-module.exports = function(el) {
-  var node = el;
-  while (node = node.parentNode) {
-    if (node == document) return true;
-  }
-  return false;
-};
-},{}],36:[function(require,module,exports){
-/**
- * Module dependencies.
- */
-
-var closest = require('closest')
-  , event = require('event');
-
-/**
- * Delegate event `type` to `selector`
- * and invoke `fn(e)`. A callback function
- * is returned which may be passed to `.unbind()`.
- *
- * @param {Element} el
- * @param {String} selector
- * @param {String} type
- * @param {Function} fn
- * @param {Boolean} capture
- * @return {Function}
- * @api public
- */
-
-exports.bind = function(el, selector, type, fn, capture){
-  return event.bind(el, type, function(e){
-    var target = e.target || e.srcElement;
-    e.delegateTarget = closest(target, selector, true, el);
-    if (e.delegateTarget) fn.call(el, e);
-  }, capture);
-};
-
-/**
- * Unbind event `type`'s callback `fn`.
- *
- * @param {Element} el
- * @param {String} type
- * @param {Function} fn
- * @param {Boolean} capture
- * @api public
- */
-
-exports.unbind = function(el, type, fn, capture){
-  event.unbind(el, type, fn, capture);
-};
-
-},{"closest":8,"event":39}],37:[function(require,module,exports){
+},{"indexof":28}],25:[function(require,module,exports){
 
 /**
  * Module dependencies.
@@ -6287,760 +5327,7 @@ function array(obj, fn, ctx) {
   }
 }
 
-},{"component-type":38,"to-function":48,"type":38}],38:[function(require,module,exports){
-
-/**
- * toString ref.
- */
-
-var toString = Object.prototype.toString;
-
-/**
- * Return the type of `val`.
- *
- * @param {Mixed} val
- * @return {String}
- * @api public
- */
-
-module.exports = function(val){
-  switch (toString.call(val)) {
-    case '[object Function]': return 'function';
-    case '[object Date]': return 'date';
-    case '[object RegExp]': return 'regexp';
-    case '[object Arguments]': return 'arguments';
-    case '[object Array]': return 'array';
-    case '[object String]': return 'string';
-  }
-
-  if (val === null) return 'null';
-  if (val === undefined) return 'undefined';
-  if (val && val.nodeType === 1) return 'element';
-  if (val === Object(val)) return 'object';
-
-  return typeof val;
-};
-
-},{}],39:[function(require,module,exports){
-var bind = window.addEventListener ? 'addEventListener' : 'attachEvent',
-    unbind = window.removeEventListener ? 'removeEventListener' : 'detachEvent',
-    prefix = bind !== 'addEventListener' ? 'on' : '';
-
-/**
- * Bind `el` event `type` to `fn`.
- *
- * @param {Element} el
- * @param {String} type
- * @param {Function} fn
- * @param {Boolean} capture
- * @return {Function}
- * @api public
- */
-
-exports.bind = function(el, type, fn, capture){
-  el[bind](prefix + type, fn, capture || false);
-  return fn;
-};
-
-/**
- * Unbind `el` event `type`'s callback `fn`.
- *
- * @param {Element} el
- * @param {String} type
- * @param {Function} fn
- * @param {Boolean} capture
- * @return {Function}
- * @api public
- */
-
-exports.unbind = function(el, type, fn, capture){
-  el[unbind](prefix + type, fn, capture || false);
-  return fn;
-};
-},{}],40:[function(require,module,exports){
-arguments[4][10][0].apply(exports,arguments)
-},{"dup":10}],41:[function(require,module,exports){
-
-/**
- * Module dependencies.
- */
-
-var typeOf = require('type');
-
-/**
- * Set or get `el`'s' value.
- *
- * @param {Element} el
- * @param {Mixed} val
- * @return {Mixed}
- * @api public
- */
-
-module.exports = function(el, val){
-  if (2 == arguments.length) return set(el, val);
-  return get(el);
-};
-
-/**
- * Get `el`'s value.
- */
-
-function get(el) {
-  switch (type(el)) {
-    case 'checkbox':
-    case 'radio':
-      if (el.checked) {
-        var attr = el.getAttribute('value');
-        return null == attr ? true : attr;
-      } else {
-        return false;
-      }
-    case 'radiogroup':
-      for (var i = 0, radio; radio = el[i]; i++) {
-        if (radio.checked) return radio.value;
-      }
-      break;
-    case 'select':
-      for (var i = 0, option; option = el.options[i]; i++) {
-        if (option.selected) return option.value;
-      }
-      break;
-    default:
-      return el.value;
-  }
-}
-
-/**
- * Set `el`'s value.
- */
-
-function set(el, val) {
-  switch (type(el)) {
-    case 'checkbox':
-    case 'radio':
-      if (val) {
-        el.checked = true;
-      } else {
-        el.checked = false;
-      }
-      break;
-    case 'radiogroup':
-      for (var i = 0, radio; radio = el[i]; i++) {
-        radio.checked = radio.value === val;
-      }
-      break;
-    case 'select':
-      for (var i = 0, option; option = el.options[i]; i++) {
-        option.selected = option.value === val;
-      }
-      break;
-    default:
-      el.value = val;
-  }
-}
-
-/**
- * Element type.
- */
-
-function type(el) {
-  var group = 'array' == typeOf(el) || 'object' == typeOf(el);
-  if (group) el = el[0];
-  var name = el.nodeName.toLowerCase();
-  var type = el.getAttribute('type');
-
-  if (group && type && 'radio' == type.toLowerCase()) return 'radiogroup';
-  if ('input' == name && type && 'checkbox' == type.toLowerCase()) return 'checkbox';
-  if ('input' == name && type && 'radio' == type.toLowerCase()) return 'radio';
-  if ('select' == name) return 'select';
-  return name;
-}
-
-},{"type":42}],42:[function(require,module,exports){
-/**
- * toString ref.
- */
-
-var toString = Object.prototype.toString;
-
-/**
- * Return the type of `val`.
- *
- * @param {Mixed} val
- * @return {String}
- * @api public
- */
-
-module.exports = function(val){
-  switch (toString.call(val)) {
-    case '[object Date]': return 'date';
-    case '[object RegExp]': return 'regexp';
-    case '[object Arguments]': return 'arguments';
-    case '[object Array]': return 'array';
-    case '[object Error]': return 'error';
-  }
-
-  if (val === null) return 'null';
-  if (val === undefined) return 'undefined';
-  if (val !== val) return 'nan';
-  if (val && val.nodeType === 1) return 'element';
-
-  if (isBuffer(val)) return 'buffer';
-
-  val = val.valueOf
-    ? val.valueOf()
-    : Object.prototype.valueOf.apply(val);
-
-  return typeof val;
-};
-
-// code borrowed from https://github.com/feross/is-buffer/blob/master/index.js
-function isBuffer(obj) {
-  return !!(obj != null &&
-    (obj._isBuffer || // For Safari 5-7 (missing Object.prototype.constructor)
-      (obj.constructor &&
-      typeof obj.constructor.isBuffer === 'function' &&
-      obj.constructor.isBuffer(obj))
-    ))
-}
-
-},{}],43:[function(require,module,exports){
-
-/**
- * Expose `parse`.
- */
-
-module.exports = parse;
-
-/**
- * Tests for browser support.
- */
-
-var div = document.createElement('div');
-// Setup
-div.innerHTML = '  <link/><table></table><a href="/a">a</a><input type="checkbox"/>';
-// Make sure that link elements get serialized correctly by innerHTML
-// This requires a wrapper element in IE
-var innerHTMLBug = !div.getElementsByTagName('link').length;
-div = undefined;
-
-/**
- * Wrap map from jquery.
- */
-
-var map = {
-  legend: [1, '<fieldset>', '</fieldset>'],
-  tr: [2, '<table><tbody>', '</tbody></table>'],
-  col: [2, '<table><tbody></tbody><colgroup>', '</colgroup></table>'],
-  // for script/link/style tags to work in IE6-8, you have to wrap
-  // in a div with a non-whitespace character in front, ha!
-  _default: innerHTMLBug ? [1, 'X<div>', '</div>'] : [0, '', '']
-};
-
-map.td =
-map.th = [3, '<table><tbody><tr>', '</tr></tbody></table>'];
-
-map.option =
-map.optgroup = [1, '<select multiple="multiple">', '</select>'];
-
-map.thead =
-map.tbody =
-map.colgroup =
-map.caption =
-map.tfoot = [1, '<table>', '</table>'];
-
-map.polyline =
-map.ellipse =
-map.polygon =
-map.circle =
-map.text =
-map.line =
-map.path =
-map.rect =
-map.g = [1, '<svg xmlns="http://www.w3.org/2000/svg" version="1.1">','</svg>'];
-
-/**
- * Parse `html` and return a DOM Node instance, which could be a TextNode,
- * HTML DOM Node of some kind (<div> for example), or a DocumentFragment
- * instance, depending on the contents of the `html` string.
- *
- * @param {String} html - HTML string to "domify"
- * @param {Document} doc - The `document` instance to create the Node for
- * @return {DOMNode} the TextNode, DOM Node, or DocumentFragment instance
- * @api private
- */
-
-function parse(html, doc) {
-  if ('string' != typeof html) throw new TypeError('String expected');
-
-  // default to the global `document` object
-  if (!doc) doc = document;
-
-  // tag name
-  var m = /<([\w:]+)/.exec(html);
-  if (!m) return doc.createTextNode(html);
-
-  html = html.replace(/^\s+|\s+$/g, ''); // Remove leading/trailing whitespace
-
-  var tag = m[1];
-
-  // body support
-  if (tag == 'body') {
-    var el = doc.createElement('html');
-    el.innerHTML = html;
-    return el.removeChild(el.lastChild);
-  }
-
-  // wrap map
-  var wrap = map[tag] || map._default;
-  var depth = wrap[0];
-  var prefix = wrap[1];
-  var suffix = wrap[2];
-  var el = doc.createElement('div');
-  el.innerHTML = prefix + html + suffix;
-  while (depth--) el = el.lastChild;
-
-  // one element
-  if (el.firstChild == el.lastChild) {
-    return el.removeChild(el.firstChild);
-  }
-
-  // several elements
-  var fragment = doc.createDocumentFragment();
-  while (el.firstChild) {
-    fragment.appendChild(el.removeChild(el.firstChild));
-  }
-
-  return fragment;
-}
-
-},{}],44:[function(require,module,exports){
-'use strict';
-
-var proto = Element.prototype;
-var vendor = proto.matches
-  || proto.matchesSelector
-  || proto.webkitMatchesSelector
-  || proto.mozMatchesSelector
-  || proto.msMatchesSelector
-  || proto.oMatchesSelector;
-
-module.exports = match;
-
-/**
- * Match `el` to `selector`.
- *
- * @param {Element} el
- * @param {String} selector
- * @return {Boolean}
- * @api public
- */
-
-function match(el, selector) {
-  if (vendor) return vendor.call(el, selector);
-  var nodes = el.parentNode.querySelectorAll(selector);
-  for (var i = 0; i < nodes.length; i++) {
-    if (nodes[i] == el) return true;
-  }
-  return false;
-}
-},{}],45:[function(require,module,exports){
-'use strict';
-
-// modified from https://github.com/es-shims/es5-shim
-var has = Object.prototype.hasOwnProperty;
-var toStr = Object.prototype.toString;
-var isArgs = require('./isArguments');
-var hasDontEnumBug = !({ 'toString': null }).propertyIsEnumerable('toString');
-var hasProtoEnumBug = function () {}.propertyIsEnumerable('prototype');
-var dontEnums = [
-	'toString',
-	'toLocaleString',
-	'valueOf',
-	'hasOwnProperty',
-	'isPrototypeOf',
-	'propertyIsEnumerable',
-	'constructor'
-];
-
-var keysShim = function keys(object) {
-	var isObject = object !== null && typeof object === 'object';
-	var isFunction = toStr.call(object) === '[object Function]';
-	var isArguments = isArgs(object);
-	var isString = isObject && toStr.call(object) === '[object String]';
-	var theKeys = [];
-
-	if (!isObject && !isFunction && !isArguments) {
-		throw new TypeError('Object.keys called on a non-object');
-	}
-
-	var skipProto = hasProtoEnumBug && isFunction;
-	if (isString && object.length > 0 && !has.call(object, 0)) {
-		for (var i = 0; i < object.length; ++i) {
-			theKeys.push(String(i));
-		}
-	}
-
-	if (isArguments && object.length > 0) {
-		for (var j = 0; j < object.length; ++j) {
-			theKeys.push(String(j));
-		}
-	} else {
-		for (var name in object) {
-			if (!(skipProto && name === 'prototype') && has.call(object, name)) {
-				theKeys.push(String(name));
-			}
-		}
-	}
-
-	if (hasDontEnumBug) {
-		var ctor = object.constructor;
-		var skipConstructor = ctor && ctor.prototype === object;
-
-		for (var k = 0; k < dontEnums.length; ++k) {
-			if (!(skipConstructor && dontEnums[k] === 'constructor') && has.call(object, dontEnums[k])) {
-				theKeys.push(dontEnums[k]);
-			}
-		}
-	}
-	return theKeys;
-};
-
-keysShim.shim = function shimObjectKeys() {
-	if (!Object.keys) {
-		Object.keys = keysShim;
-	}
-	return Object.keys || keysShim;
-};
-
-module.exports = keysShim;
-
-},{"./isArguments":46}],46:[function(require,module,exports){
-'use strict';
-
-var toStr = Object.prototype.toString;
-
-module.exports = function isArguments(value) {
-	var str = toStr.call(value);
-	var isArgs = str === '[object Arguments]';
-	if (!isArgs) {
-		isArgs = str !== '[object Array]'
-			&& value !== null
-			&& typeof value === 'object'
-			&& typeof value.length === 'number'
-			&& value.length >= 0
-			&& toStr.call(value.callee) === '[object Function]';
-	}
-	return isArgs;
-};
-
-},{}],47:[function(require,module,exports){
-module.exports = function(node, value) {
-  var text = (node.textContent !== undefined ?
-    'textContent' : 'innerText'
-  )
-
-  if (typeof value != 'undefined') {
-    node[text] = value
-  }
-
-  return node[text]
-}
-
-},{}],48:[function(require,module,exports){
-
-/**
- * Module Dependencies
- */
-
-var expr;
-try {
-  expr = require('props');
-} catch(e) {
-  expr = require('component-props');
-}
-
-/**
- * Expose `toFunction()`.
- */
-
-module.exports = toFunction;
-
-/**
- * Convert `obj` to a `Function`.
- *
- * @param {Mixed} obj
- * @return {Function}
- * @api private
- */
-
-function toFunction(obj) {
-  switch ({}.toString.call(obj)) {
-    case '[object Object]':
-      return objectToFunction(obj);
-    case '[object Function]':
-      return obj;
-    case '[object String]':
-      return stringToFunction(obj);
-    case '[object RegExp]':
-      return regexpToFunction(obj);
-    default:
-      return defaultToFunction(obj);
-  }
-}
-
-/**
- * Default to strict equality.
- *
- * @param {Mixed} val
- * @return {Function}
- * @api private
- */
-
-function defaultToFunction(val) {
-  return function(obj){
-    return val === obj;
-  };
-}
-
-/**
- * Convert `re` to a function.
- *
- * @param {RegExp} re
- * @return {Function}
- * @api private
- */
-
-function regexpToFunction(re) {
-  return function(obj){
-    return re.test(obj);
-  };
-}
-
-/**
- * Convert property `str` to a function.
- *
- * @param {String} str
- * @return {Function}
- * @api private
- */
-
-function stringToFunction(str) {
-  // immediate such as "> 20"
-  if (/^ *\W+/.test(str)) return new Function('_', 'return _ ' + str);
-
-  // properties such as "name.first" or "age > 18" or "age > 18 && age < 36"
-  return new Function('_', 'return ' + get(str));
-}
-
-/**
- * Convert `object` to a function.
- *
- * @param {Object} object
- * @return {Function}
- * @api private
- */
-
-function objectToFunction(obj) {
-  var match = {};
-  for (var key in obj) {
-    match[key] = typeof obj[key] === 'string'
-      ? defaultToFunction(obj[key])
-      : toFunction(obj[key]);
-  }
-  return function(val){
-    if (typeof val !== 'object') return false;
-    for (var key in match) {
-      if (!(key in val)) return false;
-      if (!match[key](val[key])) return false;
-    }
-    return true;
-  };
-}
-
-/**
- * Built the getter function. Supports getter style functions
- *
- * @param {String} str
- * @return {String}
- * @api private
- */
-
-function get(str) {
-  var props = expr(str);
-  if (!props.length) return '_.' + str;
-
-  var val, i, prop;
-  for (i = 0; i < props.length; i++) {
-    prop = props[i];
-    val = '_.' + prop;
-    val = "('function' == typeof " + val + " ? " + val + "() : " + val + ")";
-
-    // mimic negative lookbehind to avoid problems with nested properties
-    str = stripNested(prop, str, val);
-  }
-
-  return str;
-}
-
-/**
- * Mimic negative lookbehind to avoid problems with nested properties.
- *
- * See: http://blog.stevenlevithan.com/archives/mimic-lookbehind-javascript
- *
- * @param {String} prop
- * @param {String} str
- * @param {String} val
- * @return {String}
- * @api private
- */
-
-function stripNested (prop, str, val) {
-  return str.replace(new RegExp('(\\.)?' + prop, 'g'), function($0, $1) {
-    return $1 ? $0 : val;
-  });
-}
-
-},{"component-props":49,"props":49}],49:[function(require,module,exports){
-/**
- * Global Names
- */
-
-var globals = /\b(Array|Date|Object|Math|JSON)\b/g;
-
-/**
- * Return immediate identifiers parsed from `str`.
- *
- * @param {String} str
- * @param {String|Function} map function or prefix
- * @return {Array}
- * @api public
- */
-
-module.exports = function(str, fn){
-  var p = unique(props(str));
-  if (fn && 'string' == typeof fn) fn = prefixed(fn);
-  if (fn) return map(str, p, fn);
-  return p;
-};
-
-/**
- * Return immediate identifiers in `str`.
- *
- * @param {String} str
- * @return {Array}
- * @api private
- */
-
-function props(str) {
-  return str
-    .replace(/\.\w+|\w+ *\(|"[^"]*"|'[^']*'|\/([^/]+)\//g, '')
-    .replace(globals, '')
-    .match(/[a-zA-Z_]\w*/g)
-    || [];
-}
-
-/**
- * Return `str` with `props` mapped with `fn`.
- *
- * @param {String} str
- * @param {Array} props
- * @param {Function} fn
- * @return {String}
- * @api private
- */
-
-function map(str, props, fn) {
-  var re = /\.\w+|\w+ *\(|"[^"]*"|'[^']*'|\/([^/]+)\/|[a-zA-Z_]\w*/g;
-  return str.replace(re, function(_){
-    if ('(' == _[_.length - 1]) return fn(_);
-    if (!~props.indexOf(_)) return _;
-    return fn(_);
-  });
-}
-
-/**
- * Return unique array.
- *
- * @param {Array} arr
- * @return {Array}
- * @api private
- */
-
-function unique(arr) {
-  var ret = [];
-
-  for (var i = 0; i < arr.length; i++) {
-    if (~ret.indexOf(arr[i])) continue;
-    ret.push(arr[i]);
-  }
-
-  return ret;
-}
-
-/**
- * Map with prefix `str`.
- */
-
-function prefixed(str) {
-  return function(_){
-    return str + _;
-  };
-}
-
-},{}],50:[function(require,module,exports){
-
-exports = module.exports = trim;
-
-function trim(str){
-  return str.replace(/^\s*|\s*$/g, '');
-}
-
-exports.left = function(str){
-  return str.replace(/^\s*/, '');
-};
-
-exports.right = function(str){
-  return str.replace(/\s*$/, '');
-};
-
-},{}],51:[function(require,module,exports){
-
-/**
- * dependencies
- */
-
-var matches = require('matches-selector');
-
-/**
- * Traverse with the given `el`, `selector` and `len`.
- *
- * @param {String} type
- * @param {Element} el
- * @param {String} selector
- * @param {Number} len
- * @return {Array}
- * @api public
- */
-
-module.exports = function(type, el, selector, len){
-  var el = el[type]
-    , n = len || 1
-    , ret = [];
-
-  if (!el) return ret;
-
-  do {
-    if (n == ret.length) break;
-    if (1 != el.nodeType) continue;
-    if (matches(el, selector)) ret.push(el);
-    if (!selector) ret.push(el);
-  } while (el = el[type]);
-
-  return ret;
-}
-
-},{"matches-selector":44}],52:[function(require,module,exports){
+},{"component-type":33,"to-function":56,"type":33}],26:[function(require,module,exports){
 
 /**
  * Expose `Emitter`.
@@ -7206,10 +5493,810 @@ Emitter.prototype.hasListeners = function(event){
   return !! this.listeners(event).length;
 };
 
-},{}],53:[function(require,module,exports){
+},{}],27:[function(require,module,exports){
+var bind = window.addEventListener ? 'addEventListener' : 'attachEvent',
+    unbind = window.removeEventListener ? 'removeEventListener' : 'detachEvent',
+    prefix = bind !== 'addEventListener' ? 'on' : '';
+
+/**
+ * Bind `el` event `type` to `fn`.
+ *
+ * @param {Element} el
+ * @param {String} type
+ * @param {Function} fn
+ * @param {Boolean} capture
+ * @return {Function}
+ * @api public
+ */
+
+exports.bind = function(el, type, fn, capture){
+  el[bind](prefix + type, fn, capture || false);
+  return fn;
+};
+
+/**
+ * Unbind `el` event `type`'s callback `fn`.
+ *
+ * @param {Element} el
+ * @param {String} type
+ * @param {Function} fn
+ * @param {Boolean} capture
+ * @return {Function}
+ * @api public
+ */
+
+exports.unbind = function(el, type, fn, capture){
+  el[unbind](prefix + type, fn, capture || false);
+  return fn;
+};
+},{}],28:[function(require,module,exports){
+module.exports = function(arr, obj){
+  if (arr.indexOf) return arr.indexOf(obj);
+  for (var i = 0; i < arr.length; ++i) {
+    if (arr[i] === obj) return i;
+  }
+  return -1;
+};
+},{}],29:[function(require,module,exports){
+
+module.exports = function(a, b){
+  var fn = function(){};
+  fn.prototype = b.prototype;
+  a.prototype = new fn;
+  a.prototype.constructor = a;
+};
+},{}],30:[function(require,module,exports){
+/**
+ * Module dependencies.
+ */
+
+try {
+  var query = require('query');
+} catch (err) {
+  var query = require('component-query');
+}
+
+/**
+ * Element prototype.
+ */
+
+var proto = Element.prototype;
+
+/**
+ * Vendor function.
+ */
+
+var vendor = proto.matches
+  || proto.webkitMatchesSelector
+  || proto.mozMatchesSelector
+  || proto.msMatchesSelector
+  || proto.oMatchesSelector;
+
+/**
+ * Expose `match()`.
+ */
+
+module.exports = match;
+
+/**
+ * Match `el` to `selector`.
+ *
+ * @param {Element} el
+ * @param {String} selector
+ * @return {Boolean}
+ * @api public
+ */
+
+function match(el, selector) {
+  if (!el || el.nodeType !== 1) return false;
+  if (vendor) return vendor.call(el, selector);
+  var nodes = query.all(selector, el.parentNode);
+  for (var i = 0; i < nodes.length; ++i) {
+    if (nodes[i] == el) return true;
+  }
+  return false;
+}
+
+},{"component-query":32,"query":32}],31:[function(require,module,exports){
+/**
+ * Global Names
+ */
+
+var globals = /\b(Array|Date|Object|Math|JSON)\b/g;
+
+/**
+ * Return immediate identifiers parsed from `str`.
+ *
+ * @param {String} str
+ * @param {String|Function} map function or prefix
+ * @return {Array}
+ * @api public
+ */
+
+module.exports = function(str, fn){
+  var p = unique(props(str));
+  if (fn && 'string' == typeof fn) fn = prefixed(fn);
+  if (fn) return map(str, p, fn);
+  return p;
+};
+
+/**
+ * Return immediate identifiers in `str`.
+ *
+ * @param {String} str
+ * @return {Array}
+ * @api private
+ */
+
+function props(str) {
+  return str
+    .replace(/\.\w+|\w+ *\(|"[^"]*"|'[^']*'|\/([^/]+)\//g, '')
+    .replace(globals, '')
+    .match(/[a-zA-Z_]\w*/g)
+    || [];
+}
+
+/**
+ * Return `str` with `props` mapped with `fn`.
+ *
+ * @param {String} str
+ * @param {Array} props
+ * @param {Function} fn
+ * @return {String}
+ * @api private
+ */
+
+function map(str, props, fn) {
+  var re = /\.\w+|\w+ *\(|"[^"]*"|'[^']*'|\/([^/]+)\/|[a-zA-Z_]\w*/g;
+  return str.replace(re, function(_){
+    if ('(' == _[_.length - 1]) return fn(_);
+    if (!~props.indexOf(_)) return _;
+    return fn(_);
+  });
+}
+
+/**
+ * Return unique array.
+ *
+ * @param {Array} arr
+ * @return {Array}
+ * @api private
+ */
+
+function unique(arr) {
+  var ret = [];
+
+  for (var i = 0; i < arr.length; i++) {
+    if (~ret.indexOf(arr[i])) continue;
+    ret.push(arr[i]);
+  }
+
+  return ret;
+}
+
+/**
+ * Map with prefix `str`.
+ */
+
+function prefixed(str) {
+  return function(_){
+    return str + _;
+  };
+}
+
+},{}],32:[function(require,module,exports){
+function one(selector, el) {
+  return el.querySelector(selector);
+}
+
+exports = module.exports = function(selector, el){
+  el = el || document;
+  return one(selector, el);
+};
+
+exports.all = function(selector, el){
+  el = el || document;
+  return el.querySelectorAll(selector);
+};
+
+exports.engine = function(obj){
+  if (!obj.one) throw new Error('.one callback required');
+  if (!obj.all) throw new Error('.all callback required');
+  one = obj.one;
+  exports.all = obj.all;
+  return exports;
+};
+
+},{}],33:[function(require,module,exports){
+
+/**
+ * toString ref.
+ */
+
+var toString = Object.prototype.toString;
+
+/**
+ * Return the type of `val`.
+ *
+ * @param {Mixed} val
+ * @return {String}
+ * @api public
+ */
+
+module.exports = function(val){
+  switch (toString.call(val)) {
+    case '[object Function]': return 'function';
+    case '[object Date]': return 'date';
+    case '[object RegExp]': return 'regexp';
+    case '[object Arguments]': return 'arguments';
+    case '[object Array]': return 'array';
+    case '[object String]': return 'string';
+  }
+
+  if (val === null) return 'null';
+  if (val === undefined) return 'undefined';
+  if (val && val.nodeType === 1) return 'element';
+  if (val === Object(val)) return 'object';
+
+  return typeof val;
+};
+
+},{}],34:[function(require,module,exports){
+
+/**
+ * Module dependencies.
+ */
+
+var typeOf = require('type');
+
+/**
+ * Set or get `el`'s' value.
+ *
+ * @param {Element} el
+ * @param {Mixed} val
+ * @return {Mixed}
+ * @api public
+ */
+
+module.exports = function(el, val){
+  if (2 == arguments.length) return set(el, val);
+  return get(el);
+};
+
+/**
+ * Get `el`'s value.
+ */
+
+function get(el) {
+  switch (type(el)) {
+    case 'checkbox':
+    case 'radio':
+      if (el.checked) {
+        var attr = el.getAttribute('value');
+        return null == attr ? true : attr;
+      } else {
+        return false;
+      }
+    case 'radiogroup':
+      for (var i = 0, radio; radio = el[i]; i++) {
+        if (radio.checked) return radio.value;
+      }
+      break;
+    case 'select':
+      for (var i = 0, option; option = el.options[i]; i++) {
+        if (option.selected) return option.value;
+      }
+      break;
+    default:
+      return el.value;
+  }
+}
+
+/**
+ * Set `el`'s value.
+ */
+
+function set(el, val) {
+  switch (type(el)) {
+    case 'checkbox':
+    case 'radio':
+      if (val) {
+        el.checked = true;
+      } else {
+        el.checked = false;
+      }
+      break;
+    case 'radiogroup':
+      for (var i = 0, radio; radio = el[i]; i++) {
+        radio.checked = radio.value === val;
+      }
+      break;
+    case 'select':
+      for (var i = 0, option; option = el.options[i]; i++) {
+        option.selected = option.value === val;
+      }
+      break;
+    default:
+      el.value = val;
+  }
+}
+
+/**
+ * Element type.
+ */
+
+function type(el) {
+  var group = 'array' == typeOf(el) || 'object' == typeOf(el);
+  if (group) el = el[0];
+  var name = el.nodeName.toLowerCase();
+  var type = el.getAttribute('type');
+
+  if (group && type && 'radio' == type.toLowerCase()) return 'radiogroup';
+  if ('input' == name && type && 'checkbox' == type.toLowerCase()) return 'checkbox';
+  if ('input' == name && type && 'radio' == type.toLowerCase()) return 'radio';
+  if ('select' == name) return 'select';
+  return name;
+}
+
+},{"type":33}],35:[function(require,module,exports){
+// This code has been refactored for 140 bytes
+// You can see the original here: https://github.com/twolfson/computedStyle/blob/04cd1da2e30fa45844f95f5cb1ac898e9b9ef050/lib/computedStyle.js
+var computedStyle = function (el, prop, getComputedStyle) {
+  getComputedStyle = window.getComputedStyle;
+
+  // In one fell swoop
+  return (
+    // If we have getComputedStyle
+    getComputedStyle ?
+      // Query it
+      // TODO: From CSS-Query notes, we might need (node, null) for FF
+      getComputedStyle(el) :
+
+    // Otherwise, we are in IE and use currentStyle
+      el.currentStyle
+  )[
+    // Switch to camelCase for CSSOM
+    // DEV: Grabbed from jQuery
+    // https://github.com/jquery/jquery/blob/1.9-stable/src/css.js#L191-L194
+    // https://github.com/jquery/jquery/blob/1.9-stable/src/core.js#L593-L597
+    prop.replace(/-(\w)/gi, function (word, letter) {
+      return letter.toUpperCase();
+    })
+  ];
+};
+
+module.exports = computedStyle;
+
+},{}],36:[function(require,module,exports){
+(function (process){
+/**
+ * This is the web browser implementation of `debug()`.
+ *
+ * Expose `debug()` as the module.
+ */
+
+exports = module.exports = require('./debug');
+exports.log = log;
+exports.formatArgs = formatArgs;
+exports.save = save;
+exports.load = load;
+exports.useColors = useColors;
+exports.storage = 'undefined' != typeof chrome
+               && 'undefined' != typeof chrome.storage
+                  ? chrome.storage.local
+                  : localstorage();
+
+/**
+ * Colors.
+ */
+
+exports.colors = [
+  '#0000CC', '#0000FF', '#0033CC', '#0033FF', '#0066CC', '#0066FF', '#0099CC',
+  '#0099FF', '#00CC00', '#00CC33', '#00CC66', '#00CC99', '#00CCCC', '#00CCFF',
+  '#3300CC', '#3300FF', '#3333CC', '#3333FF', '#3366CC', '#3366FF', '#3399CC',
+  '#3399FF', '#33CC00', '#33CC33', '#33CC66', '#33CC99', '#33CCCC', '#33CCFF',
+  '#6600CC', '#6600FF', '#6633CC', '#6633FF', '#66CC00', '#66CC33', '#9900CC',
+  '#9900FF', '#9933CC', '#9933FF', '#99CC00', '#99CC33', '#CC0000', '#CC0033',
+  '#CC0066', '#CC0099', '#CC00CC', '#CC00FF', '#CC3300', '#CC3333', '#CC3366',
+  '#CC3399', '#CC33CC', '#CC33FF', '#CC6600', '#CC6633', '#CC9900', '#CC9933',
+  '#CCCC00', '#CCCC33', '#FF0000', '#FF0033', '#FF0066', '#FF0099', '#FF00CC',
+  '#FF00FF', '#FF3300', '#FF3333', '#FF3366', '#FF3399', '#FF33CC', '#FF33FF',
+  '#FF6600', '#FF6633', '#FF9900', '#FF9933', '#FFCC00', '#FFCC33'
+];
+
+/**
+ * Currently only WebKit-based Web Inspectors, Firefox >= v31,
+ * and the Firebug extension (any Firefox version) are known
+ * to support "%c" CSS customizations.
+ *
+ * TODO: add a `localStorage` variable to explicitly enable/disable colors
+ */
+
+function useColors() {
+  // NB: In an Electron preload script, document will be defined but not fully
+  // initialized. Since we know we're in Chrome, we'll just detect this case
+  // explicitly
+  if (typeof window !== 'undefined' && window.process && window.process.type === 'renderer') {
+    return true;
+  }
+
+  // Internet Explorer and Edge do not support colors.
+  if (typeof navigator !== 'undefined' && navigator.userAgent && navigator.userAgent.toLowerCase().match(/(edge|trident)\/(\d+)/)) {
+    return false;
+  }
+
+  // is webkit? http://stackoverflow.com/a/16459606/376773
+  // document is undefined in react-native: https://github.com/facebook/react-native/pull/1632
+  return (typeof document !== 'undefined' && document.documentElement && document.documentElement.style && document.documentElement.style.WebkitAppearance) ||
+    // is firebug? http://stackoverflow.com/a/398120/376773
+    (typeof window !== 'undefined' && window.console && (window.console.firebug || (window.console.exception && window.console.table))) ||
+    // is firefox >= v31?
+    // https://developer.mozilla.org/en-US/docs/Tools/Web_Console#Styling_messages
+    (typeof navigator !== 'undefined' && navigator.userAgent && navigator.userAgent.toLowerCase().match(/firefox\/(\d+)/) && parseInt(RegExp.$1, 10) >= 31) ||
+    // double check webkit in userAgent just in case we are in a worker
+    (typeof navigator !== 'undefined' && navigator.userAgent && navigator.userAgent.toLowerCase().match(/applewebkit\/(\d+)/));
+}
+
+/**
+ * Map %j to `JSON.stringify()`, since no Web Inspectors do that by default.
+ */
+
+exports.formatters.j = function(v) {
+  try {
+    return JSON.stringify(v);
+  } catch (err) {
+    return '[UnexpectedJSONParseError]: ' + err.message;
+  }
+};
+
+
+/**
+ * Colorize log arguments if enabled.
+ *
+ * @api public
+ */
+
+function formatArgs(args) {
+  var useColors = this.useColors;
+
+  args[0] = (useColors ? '%c' : '')
+    + this.namespace
+    + (useColors ? ' %c' : ' ')
+    + args[0]
+    + (useColors ? '%c ' : ' ')
+    + '+' + exports.humanize(this.diff);
+
+  if (!useColors) return;
+
+  var c = 'color: ' + this.color;
+  args.splice(1, 0, c, 'color: inherit')
+
+  // the final "%c" is somewhat tricky, because there could be other
+  // arguments passed either before or after the %c, so we need to
+  // figure out the correct index to insert the CSS into
+  var index = 0;
+  var lastC = 0;
+  args[0].replace(/%[a-zA-Z%]/g, function(match) {
+    if ('%%' === match) return;
+    index++;
+    if ('%c' === match) {
+      // we only are interested in the *last* %c
+      // (the user may have provided their own)
+      lastC = index;
+    }
+  });
+
+  args.splice(lastC, 0, c);
+}
+
+/**
+ * Invokes `console.log()` when available.
+ * No-op when `console.log` is not a "function".
+ *
+ * @api public
+ */
+
+function log() {
+  // this hackery is required for IE8/9, where
+  // the `console.log` function doesn't have 'apply'
+  return 'object' === typeof console
+    && console.log
+    && Function.prototype.apply.call(console.log, console, arguments);
+}
+
+/**
+ * Save `namespaces`.
+ *
+ * @param {String} namespaces
+ * @api private
+ */
+
+function save(namespaces) {
+  try {
+    if (null == namespaces) {
+      exports.storage.removeItem('debug');
+    } else {
+      exports.storage.debug = namespaces;
+    }
+  } catch(e) {}
+}
+
+/**
+ * Load `namespaces`.
+ *
+ * @return {String} returns the previously persisted debug modes
+ * @api private
+ */
+
+function load() {
+  var r;
+  try {
+    r = exports.storage.debug;
+  } catch(e) {}
+
+  // If debug isn't set in LS, and we're in Electron, try to load $DEBUG
+  if (!r && typeof process !== 'undefined' && 'env' in process) {
+    r = process.env.DEBUG;
+  }
+
+  return r;
+}
+
+/**
+ * Enable namespaces listed in `localStorage.debug` initially.
+ */
+
+exports.enable(load());
+
+/**
+ * Localstorage attempts to return the localstorage.
+ *
+ * This is necessary because safari throws
+ * when a user disables cookies/localstorage
+ * and you attempt to access it.
+ *
+ * @return {LocalStorage}
+ * @api private
+ */
+
+function localstorage() {
+  try {
+    return window.localStorage;
+  } catch (e) {}
+}
+
+}).call(this,require('_process'))
+},{"./debug":37,"_process":52}],37:[function(require,module,exports){
+
+/**
+ * This is the common logic for both the Node.js and web browser
+ * implementations of `debug()`.
+ *
+ * Expose `debug()` as the module.
+ */
+
+exports = module.exports = createDebug.debug = createDebug['default'] = createDebug;
+exports.coerce = coerce;
+exports.disable = disable;
+exports.enable = enable;
+exports.enabled = enabled;
+exports.humanize = require('ms');
+
+/**
+ * Active `debug` instances.
+ */
+exports.instances = [];
+
+/**
+ * The currently active debug mode names, and names to skip.
+ */
+
+exports.names = [];
+exports.skips = [];
+
+/**
+ * Map of special "%n" handling functions, for the debug "format" argument.
+ *
+ * Valid key names are a single, lower or upper-case letter, i.e. "n" and "N".
+ */
+
+exports.formatters = {};
+
+/**
+ * Select a color.
+ * @param {String} namespace
+ * @return {Number}
+ * @api private
+ */
+
+function selectColor(namespace) {
+  var hash = 0, i;
+
+  for (i in namespace) {
+    hash  = ((hash << 5) - hash) + namespace.charCodeAt(i);
+    hash |= 0; // Convert to 32bit integer
+  }
+
+  return exports.colors[Math.abs(hash) % exports.colors.length];
+}
+
+/**
+ * Create a debugger with the given `namespace`.
+ *
+ * @param {String} namespace
+ * @return {Function}
+ * @api public
+ */
+
+function createDebug(namespace) {
+
+  var prevTime;
+
+  function debug() {
+    // disabled?
+    if (!debug.enabled) return;
+
+    var self = debug;
+
+    // set `diff` timestamp
+    var curr = +new Date();
+    var ms = curr - (prevTime || curr);
+    self.diff = ms;
+    self.prev = prevTime;
+    self.curr = curr;
+    prevTime = curr;
+
+    // turn the `arguments` into a proper Array
+    var args = new Array(arguments.length);
+    for (var i = 0; i < args.length; i++) {
+      args[i] = arguments[i];
+    }
+
+    args[0] = exports.coerce(args[0]);
+
+    if ('string' !== typeof args[0]) {
+      // anything else let's inspect with %O
+      args.unshift('%O');
+    }
+
+    // apply any `formatters` transformations
+    var index = 0;
+    args[0] = args[0].replace(/%([a-zA-Z%])/g, function(match, format) {
+      // if we encounter an escaped % then don't increase the array index
+      if (match === '%%') return match;
+      index++;
+      var formatter = exports.formatters[format];
+      if ('function' === typeof formatter) {
+        var val = args[index];
+        match = formatter.call(self, val);
+
+        // now we need to remove `args[index]` since it's inlined in the `format`
+        args.splice(index, 1);
+        index--;
+      }
+      return match;
+    });
+
+    // apply env-specific formatting (colors, etc.)
+    exports.formatArgs.call(self, args);
+
+    var logFn = debug.log || exports.log || console.log.bind(console);
+    logFn.apply(self, args);
+  }
+
+  debug.namespace = namespace;
+  debug.enabled = exports.enabled(namespace);
+  debug.useColors = exports.useColors();
+  debug.color = selectColor(namespace);
+  debug.destroy = destroy;
+
+  // env-specific initialization logic for debug instances
+  if ('function' === typeof exports.init) {
+    exports.init(debug);
+  }
+
+  exports.instances.push(debug);
+
+  return debug;
+}
+
+function destroy () {
+  var index = exports.instances.indexOf(this);
+  if (index !== -1) {
+    exports.instances.splice(index, 1);
+    return true;
+  } else {
+    return false;
+  }
+}
+
+/**
+ * Enables a debug mode by namespaces. This can include modes
+ * separated by a colon and wildcards.
+ *
+ * @param {String} namespaces
+ * @api public
+ */
+
+function enable(namespaces) {
+  exports.save(namespaces);
+
+  exports.names = [];
+  exports.skips = [];
+
+  var i;
+  var split = (typeof namespaces === 'string' ? namespaces : '').split(/[\s,]+/);
+  var len = split.length;
+
+  for (i = 0; i < len; i++) {
+    if (!split[i]) continue; // ignore empty strings
+    namespaces = split[i].replace(/\*/g, '.*?');
+    if (namespaces[0] === '-') {
+      exports.skips.push(new RegExp('^' + namespaces.substr(1) + '$'));
+    } else {
+      exports.names.push(new RegExp('^' + namespaces + '$'));
+    }
+  }
+
+  for (i = 0; i < exports.instances.length; i++) {
+    var instance = exports.instances[i];
+    instance.enabled = exports.enabled(instance.namespace);
+  }
+}
+
+/**
+ * Disable debug output.
+ *
+ * @api public
+ */
+
+function disable() {
+  exports.enable('');
+}
+
+/**
+ * Returns true if the given mode name is enabled, false otherwise.
+ *
+ * @param {String} name
+ * @return {Boolean}
+ * @api public
+ */
+
+function enabled(name) {
+  if (name[name.length - 1] === '*') {
+    return true;
+  }
+  var i, len;
+  for (i = 0, len = exports.skips.length; i < len; i++) {
+    if (exports.skips[i].test(name)) {
+      return false;
+    }
+  }
+  for (i = 0, len = exports.names.length; i < len; i++) {
+    if (exports.names[i].test(name)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/**
+ * Coerce `val`.
+ *
+ * @param {Mixed} val
+ * @return {Mixed}
+ * @api private
+ */
+
+function coerce(val) {
+  if (val instanceof Error) return val.stack || val.message;
+  return val;
+}
+
+},{"ms":47}],38:[function(require,module,exports){
 module.exports = "<div class=\"confirmation-actions\">\n  <button class=\"cancel\">Cancel</button>\n  <button class=\"ok main\">Ok</button>\n</div>";
 
-},{}],54:[function(require,module,exports){
+},{}],39:[function(require,module,exports){
 /**
  * Module dependencies.
  */
@@ -7365,60 +6452,7 @@ Confirmation.prototype.render = function(options){
   });
 };
 
-},{"./confirmation.html":53,"dialog":58,"event":55,"inherit":56,"query":57}],55:[function(require,module,exports){
-var bind, unbind, prefix;
-
-function detect () {
-  bind = window.addEventListener ? 'addEventListener' : 'attachEvent';
-  unbind = window.removeEventListener ? 'removeEventListener' : 'detachEvent';
-  prefix = bind !== 'addEventListener' ? 'on' : '';
-}
-
-/**
- * Bind `el` event `type` to `fn`.
- *
- * @param {Element} el
- * @param {String} type
- * @param {Function} fn
- * @param {Boolean} capture
- * @return {Function}
- * @api public
- */
-
-exports.bind = function(el, type, fn, capture){
-  if (!bind) detect();
-  el[bind](prefix + type, fn, capture || false);
-  return fn;
-};
-
-/**
- * Unbind `el` event `type`'s callback `fn`.
- *
- * @param {Element} el
- * @param {String} type
- * @param {Function} fn
- * @param {Boolean} capture
- * @return {Function}
- * @api public
- */
-
-exports.unbind = function(el, type, fn, capture){
-  if (!unbind) detect();
-  el[unbind](prefix + type, fn, capture || false);
-  return fn;
-};
-
-},{}],56:[function(require,module,exports){
-
-module.exports = function(a, b){
-  var fn = function(){};
-  fn.prototype = b.prototype;
-  a.prototype = new fn;
-  a.prototype.constructor = a;
-};
-},{}],57:[function(require,module,exports){
-arguments[4][10][0].apply(exports,arguments)
-},{"dup":10}],58:[function(require,module,exports){
+},{"./confirmation.html":38,"dialog":40,"event":27,"inherit":29,"query":32}],40:[function(require,module,exports){
 
 /**
  * Module dependencies.
@@ -7744,9 +6778,10 @@ Dialog.prototype.remove = function(){
   return this;
 };
 
-},{"./template.html":64,"classes":6,"domify":60,"emitter":52,"event":59,"overlay":61,"query":57}],59:[function(require,module,exports){
-arguments[4][39][0].apply(exports,arguments)
-},{"dup":39}],60:[function(require,module,exports){
+},{"./template.html":41,"classes":5,"domify":42,"emitter":26,"event":27,"overlay":50,"query":32}],41:[function(require,module,exports){
+module.exports = "<div class=\"dialog hide\">\r\n  <div class=\"content\">\r\n    <span class=\"title\">Title</span>\r\n    <a href=\"#\" class=\"close\">&times;<em>close</em></a>\r\n    <div class=\"body\">\r\n      <p>Message</p>\r\n    </div>\r\n  </div>\r\n</div>\r\n";
+
+},{}],42:[function(require,module,exports){
 
 /**
  * Expose `parse`.
@@ -7758,17 +6793,13 @@ module.exports = parse;
  * Tests for browser support.
  */
 
-var innerHTMLBug = false;
-var bugTestDiv;
-if (typeof document !== 'undefined') {
-  bugTestDiv = document.createElement('div');
-  // Setup
-  bugTestDiv.innerHTML = '  <link/><table></table><a href="/a">a</a><input type="checkbox"/>';
-  // Make sure that link elements get serialized correctly by innerHTML
-  // This requires a wrapper element in IE
-  innerHTMLBug = !bugTestDiv.getElementsByTagName('link').length;
-  bugTestDiv = undefined;
-}
+var div = document.createElement('div');
+// Setup
+div.innerHTML = '  <link/><table></table><a href="/a">a</a><input type="checkbox"/>';
+// Make sure that link elements get serialized correctly by innerHTML
+// This requires a wrapper element in IE
+var innerHTMLBug = !div.getElementsByTagName('link').length;
+div = undefined;
 
 /**
  * Wrap map from jquery.
@@ -7860,7 +6891,371 @@ function parse(html, doc) {
   return fragment;
 }
 
-},{}],61:[function(require,module,exports){
+},{}],43:[function(require,module,exports){
+arguments[4][26][0].apply(exports,arguments)
+},{"dup":26}],44:[function(require,module,exports){
+arguments[4][28][0].apply(exports,arguments)
+},{"dup":28}],45:[function(require,module,exports){
+// Load in dependencies
+var computedStyle = require('computed-style');
+
+/**
+ * Calculate the `line-height` of a given node
+ * @param {HTMLElement} node Element to calculate line height of. Must be in the DOM.
+ * @returns {Number} `line-height` of the element in pixels
+ */
+function lineHeight(node) {
+  // Grab the line-height via style
+  var lnHeightStr = computedStyle(node, 'line-height'),
+      lnHeight = parseFloat(lnHeightStr, 10);
+
+  // If the lineHeight did not contain a unit (i.e. it was numeric), convert it to ems (e.g. '2.3' === '2.3em')
+  if (lnHeightStr === lnHeight + '') {
+    // Save the old lineHeight style and update the em unit to the element
+    var _lnHeightStyle = node.style.lineHeight;
+    node.style.lineHeight = lnHeightStr + 'em';
+
+    // Calculate the em based height
+    lnHeightStr = computedStyle(node, 'line-height');
+    lnHeight = parseFloat(lnHeightStr, 10);
+
+    // Revert the lineHeight style
+    if (_lnHeightStyle) {
+      node.style.lineHeight = _lnHeightStyle;
+    } else {
+      delete node.style.lineHeight;
+    }
+  }
+
+  // If the lineHeight is in `pt`, convert it to pixels (4px for 3pt)
+  // DEV: `em` units are converted to `pt` in IE6
+  // Conversion ratio from https://developer.mozilla.org/en-US/docs/Web/CSS/length
+  if (lnHeightStr.indexOf('pt') !== -1) {
+    lnHeight *= 4;
+    lnHeight /= 3;
+  } else if (lnHeightStr.indexOf('mm') !== -1) {
+  // Otherwise, if the lineHeight is in `mm`, convert it to pixels (96px for 25.4mm)
+    lnHeight *= 96;
+    lnHeight /= 25.4;
+  } else if (lnHeightStr.indexOf('cm') !== -1) {
+  // Otherwise, if the lineHeight is in `cm`, convert it to pixels (96px for 2.54cm)
+    lnHeight *= 96;
+    lnHeight /= 2.54;
+  } else if (lnHeightStr.indexOf('in') !== -1) {
+  // Otherwise, if the lineHeight is in `in`, convert it to pixels (96px for 1in)
+    lnHeight *= 96;
+  } else if (lnHeightStr.indexOf('pc') !== -1) {
+  // Otherwise, if the lineHeight is in `pc`, convert it to pixels (12pt for 1pc)
+    lnHeight *= 16;
+  }
+
+  // Continue our computation
+  lnHeight = Math.round(lnHeight);
+
+  // If the line-height is "normal", calculate by font-size
+  if (lnHeightStr === 'normal') {
+    // Create a temporary node
+    var nodeName = node.nodeName,
+        _node = document.createElement(nodeName);
+    _node.innerHTML = '&nbsp;';
+
+    // Set the font-size of the element
+    var fontSizeStr = computedStyle(node, 'font-size');
+    _node.style.fontSize = fontSizeStr;
+
+    // Append it to the body
+    var body = document.body;
+    body.appendChild(_node);
+
+    // Assume the line height of the element is the height
+    var height = _node.offsetHeight;
+    lnHeight = height;
+
+    // Remove our child from the DOM
+    body.removeChild(_node);
+  }
+
+  // Return the calculated height
+  return lnHeight;
+}
+
+// Export lineHeight
+module.exports = lineHeight;
+},{"computed-style":35}],46:[function(require,module,exports){
+'use strict';
+
+var proto = Element.prototype;
+var vendor = proto.matches
+  || proto.matchesSelector
+  || proto.webkitMatchesSelector
+  || proto.mozMatchesSelector
+  || proto.msMatchesSelector
+  || proto.oMatchesSelector;
+
+module.exports = match;
+
+/**
+ * Match `el` to `selector`.
+ *
+ * @param {Element} el
+ * @param {String} selector
+ * @return {Boolean}
+ * @api public
+ */
+
+function match(el, selector) {
+  if (vendor) return vendor.call(el, selector);
+  var nodes = el.parentNode.querySelectorAll(selector);
+  for (var i = 0; i < nodes.length; i++) {
+    if (nodes[i] == el) return true;
+  }
+  return false;
+}
+},{}],47:[function(require,module,exports){
+/**
+ * Helpers.
+ */
+
+var s = 1000;
+var m = s * 60;
+var h = m * 60;
+var d = h * 24;
+var y = d * 365.25;
+
+/**
+ * Parse or format the given `val`.
+ *
+ * Options:
+ *
+ *  - `long` verbose formatting [false]
+ *
+ * @param {String|Number} val
+ * @param {Object} [options]
+ * @throws {Error} throw an error if val is not a non-empty string or a number
+ * @return {String|Number}
+ * @api public
+ */
+
+module.exports = function(val, options) {
+  options = options || {};
+  var type = typeof val;
+  if (type === 'string' && val.length > 0) {
+    return parse(val);
+  } else if (type === 'number' && isNaN(val) === false) {
+    return options.long ? fmtLong(val) : fmtShort(val);
+  }
+  throw new Error(
+    'val is not a non-empty string or a valid number. val=' +
+      JSON.stringify(val)
+  );
+};
+
+/**
+ * Parse the given `str` and return milliseconds.
+ *
+ * @param {String} str
+ * @return {Number}
+ * @api private
+ */
+
+function parse(str) {
+  str = String(str);
+  if (str.length > 100) {
+    return;
+  }
+  var match = /^((?:\d+)?\.?\d+) *(milliseconds?|msecs?|ms|seconds?|secs?|s|minutes?|mins?|m|hours?|hrs?|h|days?|d|years?|yrs?|y)?$/i.exec(
+    str
+  );
+  if (!match) {
+    return;
+  }
+  var n = parseFloat(match[1]);
+  var type = (match[2] || 'ms').toLowerCase();
+  switch (type) {
+    case 'years':
+    case 'year':
+    case 'yrs':
+    case 'yr':
+    case 'y':
+      return n * y;
+    case 'days':
+    case 'day':
+    case 'd':
+      return n * d;
+    case 'hours':
+    case 'hour':
+    case 'hrs':
+    case 'hr':
+    case 'h':
+      return n * h;
+    case 'minutes':
+    case 'minute':
+    case 'mins':
+    case 'min':
+    case 'm':
+      return n * m;
+    case 'seconds':
+    case 'second':
+    case 'secs':
+    case 'sec':
+    case 's':
+      return n * s;
+    case 'milliseconds':
+    case 'millisecond':
+    case 'msecs':
+    case 'msec':
+    case 'ms':
+      return n;
+    default:
+      return undefined;
+  }
+}
+
+/**
+ * Short format for `ms`.
+ *
+ * @param {Number} ms
+ * @return {String}
+ * @api private
+ */
+
+function fmtShort(ms) {
+  if (ms >= d) {
+    return Math.round(ms / d) + 'd';
+  }
+  if (ms >= h) {
+    return Math.round(ms / h) + 'h';
+  }
+  if (ms >= m) {
+    return Math.round(ms / m) + 'm';
+  }
+  if (ms >= s) {
+    return Math.round(ms / s) + 's';
+  }
+  return ms + 'ms';
+}
+
+/**
+ * Long format for `ms`.
+ *
+ * @param {Number} ms
+ * @return {String}
+ * @api private
+ */
+
+function fmtLong(ms) {
+  return plural(ms, d, 'day') ||
+    plural(ms, h, 'hour') ||
+    plural(ms, m, 'minute') ||
+    plural(ms, s, 'second') ||
+    ms + ' ms';
+}
+
+/**
+ * Pluralization helper.
+ */
+
+function plural(ms, n, name) {
+  if (ms < n) {
+    return;
+  }
+  if (ms < n * 1.5) {
+    return Math.floor(ms / n) + ' ' + name;
+  }
+  return Math.ceil(ms / n) + ' ' + name + 's';
+}
+
+},{}],48:[function(require,module,exports){
+'use strict';
+
+// modified from https://github.com/es-shims/es5-shim
+var has = Object.prototype.hasOwnProperty;
+var toStr = Object.prototype.toString;
+var isArgs = require('./isArguments');
+var hasDontEnumBug = !({ 'toString': null }).propertyIsEnumerable('toString');
+var hasProtoEnumBug = function () {}.propertyIsEnumerable('prototype');
+var dontEnums = [
+	'toString',
+	'toLocaleString',
+	'valueOf',
+	'hasOwnProperty',
+	'isPrototypeOf',
+	'propertyIsEnumerable',
+	'constructor'
+];
+
+var keysShim = function keys(object) {
+	var isObject = object !== null && typeof object === 'object';
+	var isFunction = toStr.call(object) === '[object Function]';
+	var isArguments = isArgs(object);
+	var isString = isObject && toStr.call(object) === '[object String]';
+	var theKeys = [];
+
+	if (!isObject && !isFunction && !isArguments) {
+		throw new TypeError('Object.keys called on a non-object');
+	}
+
+	var skipProto = hasProtoEnumBug && isFunction;
+	if (isString && object.length > 0 && !has.call(object, 0)) {
+		for (var i = 0; i < object.length; ++i) {
+			theKeys.push(String(i));
+		}
+	}
+
+	if (isArguments && object.length > 0) {
+		for (var j = 0; j < object.length; ++j) {
+			theKeys.push(String(j));
+		}
+	} else {
+		for (var name in object) {
+			if (!(skipProto && name === 'prototype') && has.call(object, name)) {
+				theKeys.push(String(name));
+			}
+		}
+	}
+
+	if (hasDontEnumBug) {
+		var ctor = object.constructor;
+		var skipConstructor = ctor && ctor.prototype === object;
+
+		for (var k = 0; k < dontEnums.length; ++k) {
+			if (!(skipConstructor && dontEnums[k] === 'constructor') && has.call(object, dontEnums[k])) {
+				theKeys.push(dontEnums[k]);
+			}
+		}
+	}
+	return theKeys;
+};
+
+keysShim.shim = function shimObjectKeys() {
+	if (!Object.keys) {
+		Object.keys = keysShim;
+	}
+	return Object.keys || keysShim;
+};
+
+module.exports = keysShim;
+
+},{"./isArguments":49}],49:[function(require,module,exports){
+'use strict';
+
+var toStr = Object.prototype.toString;
+
+module.exports = function isArguments(value) {
+	var str = toStr.call(value);
+	var isArgs = str === '[object Arguments]';
+	if (!isArgs) {
+		isArgs = str !== '[object Array]'
+			&& value !== null
+			&& typeof value === 'object'
+			&& typeof value.length === 'number'
+			&& value.length >= 0
+			&& toStr.call(value.callee) === '[object Function]';
+	}
+	return isArgs;
+};
+
+},{}],50:[function(require,module,exports){
 
 /**
  * Module dependencies.
@@ -7985,15 +7380,196 @@ Overlay.prototype.remove = function(){
 };
 
 
-},{"./template.html":63,"classes":6,"domify":60,"emitter":62,"event":59}],62:[function(require,module,exports){
-arguments[4][52][0].apply(exports,arguments)
-},{"dup":52}],63:[function(require,module,exports){
+},{"./template.html":51,"classes":5,"domify":42,"emitter":43,"event":27}],51:[function(require,module,exports){
 module.exports = "<div class=\"overlay hidden\"></div>\r\n";
 
-},{}],64:[function(require,module,exports){
-module.exports = "<div class=\"dialog hide\">\r\n  <div class=\"content\">\r\n    <span class=\"title\">Title</span>\r\n    <a href=\"#\" class=\"close\">&times;<em>close</em></a>\r\n    <div class=\"body\">\r\n      <p>Message</p>\r\n    </div>\r\n  </div>\r\n</div>\r\n";
+},{}],52:[function(require,module,exports){
+// shim for using process in browser
+var process = module.exports = {};
 
-},{}],65:[function(require,module,exports){
+// cached from whatever global is present so that test runners that stub it
+// don't break things.  But we need to wrap it in a try catch in case it is
+// wrapped in strict mode code which doesn't define any globals.  It's inside a
+// function because try/catches deoptimize in certain engines.
+
+var cachedSetTimeout;
+var cachedClearTimeout;
+
+function defaultSetTimout() {
+    throw new Error('setTimeout has not been defined');
+}
+function defaultClearTimeout () {
+    throw new Error('clearTimeout has not been defined');
+}
+(function () {
+    try {
+        if (typeof setTimeout === 'function') {
+            cachedSetTimeout = setTimeout;
+        } else {
+            cachedSetTimeout = defaultSetTimout;
+        }
+    } catch (e) {
+        cachedSetTimeout = defaultSetTimout;
+    }
+    try {
+        if (typeof clearTimeout === 'function') {
+            cachedClearTimeout = clearTimeout;
+        } else {
+            cachedClearTimeout = defaultClearTimeout;
+        }
+    } catch (e) {
+        cachedClearTimeout = defaultClearTimeout;
+    }
+} ())
+function runTimeout(fun) {
+    if (cachedSetTimeout === setTimeout) {
+        //normal enviroments in sane situations
+        return setTimeout(fun, 0);
+    }
+    // if setTimeout wasn't available but was latter defined
+    if ((cachedSetTimeout === defaultSetTimout || !cachedSetTimeout) && setTimeout) {
+        cachedSetTimeout = setTimeout;
+        return setTimeout(fun, 0);
+    }
+    try {
+        // when when somebody has screwed with setTimeout but no I.E. maddness
+        return cachedSetTimeout(fun, 0);
+    } catch(e){
+        try {
+            // When we are in I.E. but the script has been evaled so I.E. doesn't trust the global object when called normally
+            return cachedSetTimeout.call(null, fun, 0);
+        } catch(e){
+            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error
+            return cachedSetTimeout.call(this, fun, 0);
+        }
+    }
+
+
+}
+function runClearTimeout(marker) {
+    if (cachedClearTimeout === clearTimeout) {
+        //normal enviroments in sane situations
+        return clearTimeout(marker);
+    }
+    // if clearTimeout wasn't available but was latter defined
+    if ((cachedClearTimeout === defaultClearTimeout || !cachedClearTimeout) && clearTimeout) {
+        cachedClearTimeout = clearTimeout;
+        return clearTimeout(marker);
+    }
+    try {
+        // when when somebody has screwed with setTimeout but no I.E. maddness
+        return cachedClearTimeout(marker);
+    } catch (e){
+        try {
+            // When we are in I.E. but the script has been evaled so I.E. doesn't  trust the global object when called normally
+            return cachedClearTimeout.call(null, marker);
+        } catch (e){
+            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error.
+            // Some versions of I.E. have different rules for clearTimeout vs setTimeout
+            return cachedClearTimeout.call(this, marker);
+        }
+    }
+
+
+
+}
+var queue = [];
+var draining = false;
+var currentQueue;
+var queueIndex = -1;
+
+function cleanUpNextTick() {
+    if (!draining || !currentQueue) {
+        return;
+    }
+    draining = false;
+    if (currentQueue.length) {
+        queue = currentQueue.concat(queue);
+    } else {
+        queueIndex = -1;
+    }
+    if (queue.length) {
+        drainQueue();
+    }
+}
+
+function drainQueue() {
+    if (draining) {
+        return;
+    }
+    var timeout = runTimeout(cleanUpNextTick);
+    draining = true;
+
+    var len = queue.length;
+    while(len) {
+        currentQueue = queue;
+        queue = [];
+        while (++queueIndex < len) {
+            if (currentQueue) {
+                currentQueue[queueIndex].run();
+            }
+        }
+        queueIndex = -1;
+        len = queue.length;
+    }
+    currentQueue = null;
+    draining = false;
+    runClearTimeout(timeout);
+}
+
+process.nextTick = function (fun) {
+    var args = new Array(arguments.length - 1);
+    if (arguments.length > 1) {
+        for (var i = 1; i < arguments.length; i++) {
+            args[i - 1] = arguments[i];
+        }
+    }
+    queue.push(new Item(fun, args));
+    if (queue.length === 1 && !draining) {
+        runTimeout(drainQueue);
+    }
+};
+
+// v8 likes predictible objects
+function Item(fun, array) {
+    this.fun = fun;
+    this.array = array;
+}
+Item.prototype.run = function () {
+    this.fun.apply(null, this.array);
+};
+process.title = 'browser';
+process.browser = true;
+process.env = {};
+process.argv = [];
+process.version = ''; // empty string to avoid regexp issues
+process.versions = {};
+
+function noop() {}
+
+process.on = noop;
+process.addListener = noop;
+process.once = noop;
+process.off = noop;
+process.removeListener = noop;
+process.removeAllListeners = noop;
+process.emit = noop;
+process.prependListener = noop;
+process.prependOnceListener = noop;
+
+process.listeners = function (name) { return [] }
+
+process.binding = function (name) {
+    throw new Error('process.binding is not supported');
+};
+
+process.cwd = function () { return '/' };
+process.chdir = function (dir) {
+    throw new Error('process.chdir is not supported');
+};
+process.umask = function() { return 0; };
+
+},{}],53:[function(require,module,exports){
 
 /**
  * Current language.
@@ -8060,7 +7636,315 @@ function get (path, obj) {
 }
 
 
-},{}],66:[function(require,module,exports){
+},{}],54:[function(require,module,exports){
+module.exports = function(node, value) {
+  var text = (node.textContent !== undefined ?
+    'textContent' : 'innerText'
+  )
+
+  if (typeof value != 'undefined') {
+    node[text] = value
+  }
+
+  return node[text]
+}
+
+},{}],55:[function(require,module,exports){
+
+var toSpace = require('to-space-case');
+
+
+/**
+ * Expose `toCamelCase`.
+ */
+
+module.exports = toCamelCase;
+
+
+/**
+ * Convert a `string` to camel case.
+ *
+ * @param {String} string
+ * @return {String}
+ */
+
+
+function toCamelCase (string) {
+  return toSpace(string).replace(/\s(\w)/g, function (matches, letter) {
+    return letter.toUpperCase();
+  });
+}
+},{"to-space-case":58}],56:[function(require,module,exports){
+
+/**
+ * Module Dependencies
+ */
+
+var expr;
+try {
+  expr = require('props');
+} catch(e) {
+  expr = require('component-props');
+}
+
+/**
+ * Expose `toFunction()`.
+ */
+
+module.exports = toFunction;
+
+/**
+ * Convert `obj` to a `Function`.
+ *
+ * @param {Mixed} obj
+ * @return {Function}
+ * @api private
+ */
+
+function toFunction(obj) {
+  switch ({}.toString.call(obj)) {
+    case '[object Object]':
+      return objectToFunction(obj);
+    case '[object Function]':
+      return obj;
+    case '[object String]':
+      return stringToFunction(obj);
+    case '[object RegExp]':
+      return regexpToFunction(obj);
+    default:
+      return defaultToFunction(obj);
+  }
+}
+
+/**
+ * Default to strict equality.
+ *
+ * @param {Mixed} val
+ * @return {Function}
+ * @api private
+ */
+
+function defaultToFunction(val) {
+  return function(obj){
+    return val === obj;
+  };
+}
+
+/**
+ * Convert `re` to a function.
+ *
+ * @param {RegExp} re
+ * @return {Function}
+ * @api private
+ */
+
+function regexpToFunction(re) {
+  return function(obj){
+    return re.test(obj);
+  };
+}
+
+/**
+ * Convert property `str` to a function.
+ *
+ * @param {String} str
+ * @return {Function}
+ * @api private
+ */
+
+function stringToFunction(str) {
+  // immediate such as "> 20"
+  if (/^ *\W+/.test(str)) return new Function('_', 'return _ ' + str);
+
+  // properties such as "name.first" or "age > 18" or "age > 18 && age < 36"
+  return new Function('_', 'return ' + get(str));
+}
+
+/**
+ * Convert `object` to a function.
+ *
+ * @param {Object} object
+ * @return {Function}
+ * @api private
+ */
+
+function objectToFunction(obj) {
+  var match = {};
+  for (var key in obj) {
+    match[key] = typeof obj[key] === 'string'
+      ? defaultToFunction(obj[key])
+      : toFunction(obj[key]);
+  }
+  return function(val){
+    if (typeof val !== 'object') return false;
+    for (var key in match) {
+      if (!(key in val)) return false;
+      if (!match[key](val[key])) return false;
+    }
+    return true;
+  };
+}
+
+/**
+ * Built the getter function. Supports getter style functions
+ *
+ * @param {String} str
+ * @return {String}
+ * @api private
+ */
+
+function get(str) {
+  var props = expr(str);
+  if (!props.length) return '_.' + str;
+
+  var val, i, prop;
+  for (i = 0; i < props.length; i++) {
+    prop = props[i];
+    val = '_.' + prop;
+    val = "('function' == typeof " + val + " ? " + val + "() : " + val + ")";
+
+    // mimic negative lookbehind to avoid problems with nested properties
+    str = stripNested(prop, str, val);
+  }
+
+  return str;
+}
+
+/**
+ * Mimic negative lookbehind to avoid problems with nested properties.
+ *
+ * See: http://blog.stevenlevithan.com/archives/mimic-lookbehind-javascript
+ *
+ * @param {String} prop
+ * @param {String} str
+ * @param {String} val
+ * @return {String}
+ * @api private
+ */
+
+function stripNested (prop, str, val) {
+  return str.replace(new RegExp('(\\.)?' + prop, 'g'), function($0, $1) {
+    return $1 ? $0 : val;
+  });
+}
+
+},{"component-props":31,"props":31}],57:[function(require,module,exports){
+
+/**
+ * Expose `toNoCase`.
+ */
+
+module.exports = toNoCase;
+
+
+/**
+ * Test whether a string is camel-case.
+ */
+
+var hasSpace = /\s/;
+var hasCamel = /[a-z][A-Z]/;
+var hasSeparator = /[\W_]/;
+
+
+/**
+ * Remove any starting case from a `string`, like camel or snake, but keep
+ * spaces and punctuation that may be important otherwise.
+ *
+ * @param {String} string
+ * @return {String}
+ */
+
+function toNoCase (string) {
+  if (hasSpace.test(string)) return string.toLowerCase();
+
+  if (hasSeparator.test(string)) string = unseparate(string);
+  if (hasCamel.test(string)) string = uncamelize(string);
+  return string.toLowerCase();
+}
+
+
+/**
+ * Separator splitter.
+ */
+
+var separatorSplitter = /[\W_]+(.|$)/g;
+
+
+/**
+ * Un-separate a `string`.
+ *
+ * @param {String} string
+ * @return {String}
+ */
+
+function unseparate (string) {
+  return string.replace(separatorSplitter, function (m, next) {
+    return next ? ' ' + next : '';
+  });
+}
+
+
+/**
+ * Camelcase splitter.
+ */
+
+var camelSplitter = /(.)([A-Z]+)/g;
+
+
+/**
+ * Un-camelcase a `string`.
+ *
+ * @param {String} string
+ * @return {String}
+ */
+
+function uncamelize (string) {
+  return string.replace(camelSplitter, function (m, previous, uppers) {
+    return previous + ' ' + uppers.toLowerCase().split('').join(' ');
+  });
+}
+},{}],58:[function(require,module,exports){
+
+var clean = require('to-no-case');
+
+
+/**
+ * Expose `toSpaceCase`.
+ */
+
+module.exports = toSpaceCase;
+
+
+/**
+ * Convert a `string` to space case.
+ *
+ * @param {String} string
+ * @return {String}
+ */
+
+
+function toSpaceCase (string) {
+  return clean(string).replace(/[\W_]+(.|$)/g, function (matches, match) {
+    return match ? ' ' + match : '';
+  });
+}
+},{"to-no-case":57}],59:[function(require,module,exports){
+
+exports = module.exports = trim;
+
+function trim(str){
+  return str.replace(/^\s*|\s*$/g, '');
+}
+
+exports.left = function(str){
+  return str.replace(/^\s*/, '');
+};
+
+exports.right = function(str){
+  return str.replace(/\s*$/, '');
+};
+
+},{}],60:[function(require,module,exports){
 // Load in dependencies
 var lineHeight = require('line-height');
 
@@ -8158,126 +8042,64 @@ function trunkata(root, options) {
 
 // Export trunkata
 module.exports = trunkata;
-},{"line-height":67}],67:[function(require,module,exports){
-// Load in dependencies
-var computedStyle = require('computed-style');
+},{"line-height":45}],61:[function(require,module,exports){
 
 /**
- * Calculate the `line-height` of a given node
- * @param {HTMLElement} node Element to calculate line height of. Must be in the DOM.
- * @returns {Number} `line-height` of the element in pixels
+ * Check if `el` is within the document.
+ *
+ * @param {Element} el
+ * @return {Boolean}
+ * @api private
  */
-function lineHeight(node) {
-  // Grab the line-height via style
-  var lnHeightStr = computedStyle(node, 'line-height'),
-      lnHeight = parseFloat(lnHeightStr, 10);
 
-  // If the lineHeight did not contain a unit (i.e. it was numeric), convert it to ems (e.g. '2.3' === '2.3em')
-  if (lnHeightStr === lnHeight + '') {
-    // Save the old lineHeight style and update the em unit to the element
-    var _lnHeightStyle = node.style.lineHeight;
-    node.style.lineHeight = lnHeightStr + 'em';
-
-    // Calculate the em based height
-    lnHeightStr = computedStyle(node, 'line-height');
-    lnHeight = parseFloat(lnHeightStr, 10);
-
-    // Revert the lineHeight style
-    if (_lnHeightStyle) {
-      node.style.lineHeight = _lnHeightStyle;
-    } else {
-      delete node.style.lineHeight;
-    }
+module.exports = function(el) {
+  var node = el;
+  while (node = node.parentNode) {
+    if (node == document) return true;
   }
+  return false;
+};
+},{}],62:[function(require,module,exports){
 
-  // If the lineHeight is in `pt`, convert it to pixels (4px for 3pt)
-  // DEV: `em` units are converted to `pt` in IE6
-  // Conversion ratio from https://developer.mozilla.org/en-US/docs/Web/CSS/length
-  if (lnHeightStr.indexOf('pt') !== -1) {
-    lnHeight *= 4;
-    lnHeight /= 3;
-  } else if (lnHeightStr.indexOf('mm') !== -1) {
-  // Otherwise, if the lineHeight is in `mm`, convert it to pixels (96px for 25.4mm)
-    lnHeight *= 96;
-    lnHeight /= 25.4;
-  } else if (lnHeightStr.indexOf('cm') !== -1) {
-  // Otherwise, if the lineHeight is in `cm`, convert it to pixels (96px for 2.54cm)
-    lnHeight *= 96;
-    lnHeight /= 2.54;
-  } else if (lnHeightStr.indexOf('in') !== -1) {
-  // Otherwise, if the lineHeight is in `in`, convert it to pixels (96px for 1in)
-    lnHeight *= 96;
-  } else if (lnHeightStr.indexOf('pc') !== -1) {
-  // Otherwise, if the lineHeight is in `pc`, convert it to pixels (12pt for 1pc)
-    lnHeight *= 16;
-  }
+/**
+ * dependencies
+ */
 
-  // Continue our computation
-  lnHeight = Math.round(lnHeight);
+var matches = require('matches-selector');
 
-  // If the line-height is "normal", calculate by font-size
-  if (lnHeightStr === 'normal') {
-    // Create a temporary node
-    var nodeName = node.nodeName,
-        _node = document.createElement(nodeName);
-    _node.innerHTML = '&nbsp;';
+/**
+ * Traverse with the given `el`, `selector` and `len`.
+ *
+ * @param {String} type
+ * @param {Element} el
+ * @param {String} selector
+ * @param {Number} len
+ * @return {Array}
+ * @api public
+ */
 
-    // Set the font-size of the element
-    var fontSizeStr = computedStyle(node, 'font-size');
-    _node.style.fontSize = fontSizeStr;
+module.exports = function(type, el, selector, len){
+  var el = el[type]
+    , n = len || 1
+    , ret = [];
 
-    // Append it to the body
-    var body = document.body;
-    body.appendChild(_node);
+  if (!el) return ret;
 
-    // Assume the line height of the element is the height
-    var height = _node.offsetHeight;
-    lnHeight = height;
+  do {
+    if (n == ret.length) break;
+    if (1 != el.nodeType) continue;
+    if (matches(el, selector)) ret.push(el);
+    if (!selector) ret.push(el);
+  } while (el = el[type]);
 
-    // Remove our child from the DOM
-    body.removeChild(_node);
-  }
-
-  // Return the calculated height
-  return lnHeight;
+  return ret;
 }
 
-// Export lineHeight
-module.exports = lineHeight;
-},{"computed-style":68}],68:[function(require,module,exports){
-// This code has been refactored for 140 bytes
-// You can see the original here: https://github.com/twolfson/computedStyle/blob/04cd1da2e30fa45844f95f5cb1ac898e9b9ef050/lib/computedStyle.js
-var computedStyle = function (el, prop, getComputedStyle) {
-  getComputedStyle = window.getComputedStyle;
+},{"matches-selector":46}],63:[function(require,module,exports){
+module.exports = "<li data-comment-id=\"<%- comment.id %>\" class=\"comment-obj <%- comment.type %>\">\n  <div class=\"comment-body\">\n    <div class=\"author-avatar\">\n      <img src=\"<%- comment.authorAvatarUrl %>\">\n      <% if (voting && currentUser && comment.authorId !== currentUser.id){ %>\n        <div class=\"voting\">\n          <span class=\"votes\">0</span>\n          <a href=\"#\" class=\"action-link upvote\", title=\"Upvote\"><i class=\"icon-angle-up\"></i></a>\n          <a href=\"#\" class=\"action-link downvote\", title=\"Downvote\"><i class=\"icon-angle-down\"></i></a>\n        </div>\n      <% } %>\n    </div>\n    <div class=\"right-of-avatar\">\n      <% if (comment.authorUrl) { %>\n        <a class=\"author-name\" href=\"<%- comment.authorUrl %>\">\n          <%- comment.authorName %>\n        </a>\n      <% } else { %>\n        <p class=\"author-name\">\n          <%- comment.authorName %>\n          <% if (comment.createdAt) { %>\n            <small class=\"ago\" data-time=\"<%- comment.createdAt %>\"></small>\n          <% } %>\n        </p>\n      <% } %>\n      <div class=\"comment-view-wrapper\">\n        <p class=\"comment\">\n          <%- comment.comment %>\n        </p>\n        <div class=\"comment-actions\">\n          <% if (currentUser && comment.authorId === currentUser.id){ %>\n            <a href=\"#\" class=\"action-link edit\">Edit</a>\n          <% } %>\n          <% if (currentUser && (currentUser.isAdmin || comment.authorId === currentUser.id)){ %>\n            <a href=\"#\" class=\"action-link delete\">Delete</a>\n          <% } %>\n        </div>\n      </div>\n      <div class=\"comment-form-wrapper hide\">\n        <p class=\"error\"></p>\n        <input type=\"hidden\" class=\"comment-id\" value=\"<%- comment.id %>\">\n        <input type=\"text\" class=\"comment-box\" value=\"<%- comment.comment %>\">\n        <div class=\"comment-actions\">\n          <a href=\"#\" class=\"action-link post\">Save</a>\n          <a href=\"#\" class=\"action-link cancel-edit\">Cancel</a>\n        </div>\n      </div>\n    </div>\n  </div>\n</li>\n";
 
-  // In one fell swoop
-  return (
-    // If we have getComputedStyle
-    getComputedStyle ?
-      // Query it
-      // TODO: From CSS-Query notes, we might need (node, null) for FF
-      getComputedStyle(el) :
-
-    // Otherwise, we are in IE and use currentStyle
-      el.currentStyle
-  )[
-    // Switch to camelCase for CSSOM
-    // DEV: Grabbed from jQuery
-    // https://github.com/jquery/jquery/blob/1.9-stable/src/css.js#L191-L194
-    // https://github.com/jquery/jquery/blob/1.9-stable/src/core.js#L593-L597
-    prop.replace(/-(\w)/gi, function (word, letter) {
-      return letter.toUpperCase();
-    })
-  ];
-};
-
-module.exports = computedStyle;
-
-},{}],69:[function(require,module,exports){
-module.exports = "<li data-comment-id=\"<%- comment.id %>\">\n  <div class=\"comment-body\">\n    <div class=\"author-avatar\">\n      <img src=\"<%- comment.authorAvatarUrl %>\">\n      <% if (voting && currentUser && comment.authorId !== currentUser.id){ %>\n        <div class=\"voting\">\n          <span class=\"votes\">0</span>\n          <a href=\"#\" class=\"action-link upvote\", title=\"Upvote\"><i class=\"icon-angle-up\"></i></a>\n          <a href=\"#\" class=\"action-link downvote\", title=\"Downvote\"><i class=\"icon-angle-down\"></i></a>\n        </div>\n      <% } %>\n    </div>\n    <div class=\"right-of-avatar\">\n      <% if (comment.authorUrl) { %>\n        <a class=\"author-name\" href=\"<%- comment.authorUrl %>\">\n          <%- comment.authorName %>\n        </a>\n      <% } else { %>\n        <p class=\"author-name\">\n          <%- comment.authorName %>\n          <% if (comment.createdAt) { %>\n            <small class=\"ago\" data-time=\"<%- comment.createdAt %>\"></small>\n          <% } %>\n        </p>\n      <% } %>\n      <div class=\"comment-view-wrapper\">\n        <p class=\"comment\">\n          <%- comment.comment %>\n        </p>\n        <div class=\"comment-actions\">\n          <% if (currentUser && comment.authorId === currentUser.id){ %>\n            <a href=\"#\" class=\"action-link edit\">Edit</a>\n          <% } %>\n          <% if (currentUser && (currentUser.isAdmin || comment.authorId === currentUser.id)){ %>\n            <a href=\"#\" class=\"action-link delete\">Delete</a>\n          <% } %>\n        </div>\n      </div>\n      <div class=\"comment-form-wrapper hide\">\n        <p class=\"error\"></p>\n        <input type=\"hidden\" class=\"comment-id\" value=\"<%- comment.id %>\">\n        <input type=\"text\" class=\"comment-box\" value=\"<%- comment.comment %>\">\n        <div class=\"comment-actions\">\n          <a href=\"#\" class=\"action-link post\">Save</a>\n          <a href=\"#\" class=\"action-link cancel-edit\">Cancel</a>\n        </div>\n      </div>\n    </div>\n  </div>\n</li>\n";
-
-},{}],70:[function(require,module,exports){
+},{}],64:[function(require,module,exports){
 module.exports = "<div class=\"side-comment <%= sectionClasses %>\">\n  <a href=\"#\" class=\"marker\">\n    <span><%- comments.length %></span>\n  </a>\n\n  <div class=\"comments-wrapper\">\n    <ul class=\"comments\">\n      <% _.each(comments, function( comment ){ %>\n        <%= _.template(commentTemplate, { comment: comment, currentUser: currentUser, t: t, voting: voting }) %>\n      <% }) %>\n    </ul>\n\n    <% if (!currentUser) { %>\n      <span class=\"restricted\">\n        <a href=\"/signin\">Login</a>\n        Or\n        <a href=\"/signup?reference=<%= reference %>\">Signup</a>\n      </span>\n    <% } %>\n\n    <% if (currentUser){ %>\n      <a href=\"#\" class=\"add-comment\">Leave a comment</a>\n      <div class=\"comment-form comment-form-wrapper\">\n        <div class=\"author-avatar\">\n          <img src=\"<%- currentUser.avatarUrl %>\">\n        </div>\n        <div class=\"right-of-avatar\">\n          <p class=\"author-name\">\n            <%- currentUser.name %>\n          </p>\n          <p class=\"error\"></p>\n          <input type=\"text\" class=\"comment-box\" placeholder=\"Leave a comment...\">\n          <div class=\"actions\">\n            <a href=\"#\" class=\"action-link post\">Post</a>\n            <a href=\"#\" class=\"action-link cancel\">Cancel</a>\n          </div>\n        </div>\n      </div>\n    <% } %>\n  </div>\n</div>\n";
 
-},{}]},{},[3])(3)
+},{}]},{},[2])(2)
 });
