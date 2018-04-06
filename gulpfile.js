@@ -1,8 +1,10 @@
 var gulp = require('gulp');
-var concat = require('gulp-concat');
+var browserify = require('browserify');
 var uglify = require('gulp-uglify');
 var minifycss = require('gulp-minify-css');
 var less = require('gulp-less');
+var source = require('vinyl-source-stream');
+var buffer = require('vinyl-buffer');
 var prefix = require('gulp-autoprefixer');
 var rename = require('gulp-rename');
 
@@ -12,10 +14,16 @@ var paths = {
 };
 
 gulp.task('scripts', function() {
+  var b = browserify({
+    entries: 'js/main.js',
+    standalone: 'SideComments'
+  });
+
   // Minify and copy all JavaScript (except vendor scripts)
-  return gulp.src(paths.scripts)
-    .pipe(rename('side-comments.js'))
+  return b.bundle()
+    .pipe(source('side-comments.js'))
     .pipe(gulp.dest("./release"))
+    .pipe(buffer())
     .pipe(uglify())
     .pipe(rename('side-comments.min.js'))
     .pipe(gulp.dest("./release"));
