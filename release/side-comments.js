@@ -252,7 +252,7 @@ SideComments.prototype.destroy = function() {
 
 module.exports = SideComments;
 
-},{"./section.js":3,"./vendor/lodash-custom.js":4,"emitter":26}],3:[function(require,module,exports){
+},{"./section.js":3,"./vendor/lodash-custom.js":4,"emitter":28}],3:[function(require,module,exports){
 var _ = require('./vendor/lodash-custom.js');
 var Template = require('../templates/section.html');
 var CommentTemplate = require('../templates/comment.html');
@@ -588,7 +588,7 @@ Section.prototype.readmore = function(ev) {
 
   var commentContainer = closest(ev.target,'li[data-comment-id]');
   var id = commentContainer.getAttribute('data-comment-id');
-  var comment = get(this.comments, 'id === "%id"'.replace('%id', id));
+  var comment = get(this.comments, 'id === %id'.replace('%id', id));
   var commentText = o('p.comment', commentContainer);
 
   commentText.html(comment.text);
@@ -663,7 +663,7 @@ function get(list, query) {
   return match || null;
 }
 
-},{"../templates/comment.html":63,"../templates/section.html":64,"./helpers/mobile-check.js":1,"./vendor/lodash-custom.js":4,"classes":5,"closest":6,"confirmation":39,"dom":18,"t":53,"trunkata":60}],4:[function(require,module,exports){
+},{"../templates/comment.html":63,"../templates/section.html":64,"./helpers/mobile-check.js":1,"./vendor/lodash-custom.js":4,"classes":5,"closest":6,"confirmation":41,"dom":18,"t":53,"trunkata":60}],4:[function(require,module,exports){
 (function (global){
 /**
  * @license
@@ -3243,7 +3243,7 @@ ClassList.prototype.contains = function(name){
     : !! ~index(this.array(), name);
 };
 
-},{"indexof":44}],6:[function(require,module,exports){
+},{"indexof":46}],6:[function(require,module,exports){
 var matches = require('matches-selector')
 
 module.exports = function (element, selector, checkYoSelf, root) {
@@ -3264,7 +3264,7 @@ module.exports = function (element, selector, checkYoSelf, root) {
   }
 }
 
-},{"matches-selector":30}],7:[function(require,module,exports){
+},{"matches-selector":32}],7:[function(require,module,exports){
 /**
  * Module Dependencies
  */
@@ -3324,7 +3324,7 @@ function setStyles(el, props) {
   return el;
 }
 
-},{"./lib/css":9,"./lib/style":12,"debug":36}],8:[function(require,module,exports){
+},{"./lib/css":9,"./lib/style":12,"debug":38}],8:[function(require,module,exports){
 /**
  * Module Dependencies
  */
@@ -3374,7 +3374,7 @@ function computed(el, prop, precomputed) {
   return undefined === ret ? ret : ret + '';
 }
 
-},{"./style":12,"./styles":13,"debug":36,"within-document":61}],9:[function(require,module,exports){
+},{"./style":12,"./styles":13,"debug":38,"within-document":61}],9:[function(require,module,exports){
 /**
  * Module Dependencies
  */
@@ -3456,7 +3456,7 @@ function isNumeric(obj) {
   return !isNan(parseFloat(obj)) && isFinite(obj);
 }
 
-},{"./computed":8,"./hooks":10,"./prop":11,"debug":36,"to-camel-case":55}],10:[function(require,module,exports){
+},{"./computed":8,"./hooks":10,"./prop":11,"debug":38,"to-camel-case":55}],10:[function(require,module,exports){
 /**
  * Module Dependencies
  */
@@ -3620,7 +3620,7 @@ function augmentWidthOrHeight(el, prop, extra, isBorderBox, styles) {
   return val;
 }
 
-},{"./computed":8,"./css":9,"./styles":13,"./support":14,"./swap":15,"each":25}],11:[function(require,module,exports){
+},{"./computed":8,"./css":9,"./styles":13,"./support":14,"./swap":15,"each":27}],11:[function(require,module,exports){
 /**
  * Module dependencies
  */
@@ -3658,7 +3658,7 @@ function prop(prop, style) {
   return prop;
 }
 
-},{"./vendor":16,"debug":36,"to-camel-case":55}],12:[function(require,module,exports){
+},{"./vendor":16,"debug":38,"to-camel-case":55}],12:[function(require,module,exports){
 /**
  * Module Dependencies
  */
@@ -3766,7 +3766,7 @@ function get(el, prop, orig, extra) {
   return ret;
 }
 
-},{"./hooks":10,"./prop":11,"./support":14,"debug":36,"to-camel-case":55}],13:[function(require,module,exports){
+},{"./hooks":10,"./prop":11,"./support":14,"debug":38,"to-camel-case":55}],13:[function(require,module,exports){
 /**
  * Expose `styles`
  */
@@ -4007,7 +4007,7 @@ exports.unbind = function(el, type, fn, capture){
   event.unbind(el, type, fn, capture);
 };
 
-},{"closest":6,"event":27}],18:[function(require,module,exports){
+},{"closest":6,"event":29}],18:[function(require,module,exports){
 /**
  * Module dependencies.
  */
@@ -4234,7 +4234,7 @@ function isHTML(str) {
   return !!(match && match[1]);
 }
 
-},{"./lib/attributes":19,"./lib/classes":20,"./lib/events":21,"./lib/manipulate":22,"./lib/traverse":23,"domify":42,"each":25,"event":27,"keys":48,"query":32,"trim":59}],19:[function(require,module,exports){
+},{"./lib/attributes":19,"./lib/classes":20,"./lib/events":21,"./lib/manipulate":22,"./lib/traverse":23,"domify":44,"each":27,"event":29,"keys":25,"query":34,"trim":59}],19:[function(require,module,exports){
 /**
  * Module Dependencies
  */
@@ -4322,7 +4322,7 @@ exports.value = function(val){
   });
 };
 
-},{"value":34}],20:[function(require,module,exports){
+},{"value":36}],20:[function(require,module,exports){
 /**
  * Module Dependencies
  */
@@ -4469,7 +4469,7 @@ exports.off = function(event, selector, fn, capture){
   });
 };
 
-},{"delegate":17,"event":27}],22:[function(require,module,exports){
+},{"delegate":17,"event":29}],22:[function(require,module,exports){
 /**
  * Module Dependencies
  */
@@ -4756,7 +4756,7 @@ exports.focus = function(){
   return this;
 };
 
-},{"css":7,"text":54,"value":34}],23:[function(require,module,exports){
+},{"css":7,"text":54,"value":36}],23:[function(require,module,exports){
 /**
  * Module Dependencies
  */
@@ -5048,7 +5048,7 @@ each([
   };
 });
 
-},{"each":25,"matches-selector":46,"to-function":56,"traverse":62}],24:[function(require,module,exports){
+},{"each":27,"matches-selector":48,"to-function":56,"traverse":62}],24:[function(require,module,exports){
 /**
  * Module dependencies.
  */
@@ -5236,7 +5236,97 @@ ClassList.prototype.contains = function(name){
     : !! ~index(this.array(), name);
 };
 
-},{"indexof":28}],25:[function(require,module,exports){
+},{"indexof":30}],25:[function(require,module,exports){
+'use strict';
+
+// modified from https://github.com/es-shims/es5-shim
+var has = Object.prototype.hasOwnProperty;
+var toStr = Object.prototype.toString;
+var isArgs = require('./isArguments');
+var hasDontEnumBug = !({ 'toString': null }).propertyIsEnumerable('toString');
+var hasProtoEnumBug = function () {}.propertyIsEnumerable('prototype');
+var dontEnums = [
+	'toString',
+	'toLocaleString',
+	'valueOf',
+	'hasOwnProperty',
+	'isPrototypeOf',
+	'propertyIsEnumerable',
+	'constructor'
+];
+
+var keysShim = function keys(object) {
+	var isObject = object !== null && typeof object === 'object';
+	var isFunction = toStr.call(object) === '[object Function]';
+	var isArguments = isArgs(object);
+	var isString = isObject && toStr.call(object) === '[object String]';
+	var theKeys = [];
+
+	if (!isObject && !isFunction && !isArguments) {
+		throw new TypeError('Object.keys called on a non-object');
+	}
+
+	var skipProto = hasProtoEnumBug && isFunction;
+	if (isString && object.length > 0 && !has.call(object, 0)) {
+		for (var i = 0; i < object.length; ++i) {
+			theKeys.push(String(i));
+		}
+	}
+
+	if (isArguments && object.length > 0) {
+		for (var j = 0; j < object.length; ++j) {
+			theKeys.push(String(j));
+		}
+	} else {
+		for (var name in object) {
+			if (!(skipProto && name === 'prototype') && has.call(object, name)) {
+				theKeys.push(String(name));
+			}
+		}
+	}
+
+	if (hasDontEnumBug) {
+		var ctor = object.constructor;
+		var skipConstructor = ctor && ctor.prototype === object;
+
+		for (var k = 0; k < dontEnums.length; ++k) {
+			if (!(skipConstructor && dontEnums[k] === 'constructor') && has.call(object, dontEnums[k])) {
+				theKeys.push(dontEnums[k]);
+			}
+		}
+	}
+	return theKeys;
+};
+
+keysShim.shim = function shimObjectKeys() {
+	if (!Object.keys) {
+		Object.keys = keysShim;
+	}
+	return Object.keys || keysShim;
+};
+
+module.exports = keysShim;
+
+},{"./isArguments":26}],26:[function(require,module,exports){
+'use strict';
+
+var toStr = Object.prototype.toString;
+
+module.exports = function isArguments(value) {
+	var str = toStr.call(value);
+	var isArgs = str === '[object Arguments]';
+	if (!isArgs) {
+		isArgs = str !== '[object Array]'
+			&& value !== null
+			&& typeof value === 'object'
+			&& typeof value.length === 'number'
+			&& value.length >= 0
+			&& toStr.call(value.callee) === '[object Function]';
+	}
+	return isArgs;
+};
+
+},{}],27:[function(require,module,exports){
 
 /**
  * Module dependencies.
@@ -5327,7 +5417,7 @@ function array(obj, fn, ctx) {
   }
 }
 
-},{"component-type":33,"to-function":56,"type":33}],26:[function(require,module,exports){
+},{"component-type":35,"to-function":56,"type":35}],28:[function(require,module,exports){
 
 /**
  * Expose `Emitter`.
@@ -5493,7 +5583,7 @@ Emitter.prototype.hasListeners = function(event){
   return !! this.listeners(event).length;
 };
 
-},{}],27:[function(require,module,exports){
+},{}],29:[function(require,module,exports){
 var bind = window.addEventListener ? 'addEventListener' : 'attachEvent',
     unbind = window.removeEventListener ? 'removeEventListener' : 'detachEvent',
     prefix = bind !== 'addEventListener' ? 'on' : '';
@@ -5529,7 +5619,7 @@ exports.unbind = function(el, type, fn, capture){
   el[unbind](prefix + type, fn, capture || false);
   return fn;
 };
-},{}],28:[function(require,module,exports){
+},{}],30:[function(require,module,exports){
 module.exports = function(arr, obj){
   if (arr.indexOf) return arr.indexOf(obj);
   for (var i = 0; i < arr.length; ++i) {
@@ -5537,7 +5627,7 @@ module.exports = function(arr, obj){
   }
   return -1;
 };
-},{}],29:[function(require,module,exports){
+},{}],31:[function(require,module,exports){
 
 module.exports = function(a, b){
   var fn = function(){};
@@ -5545,7 +5635,7 @@ module.exports = function(a, b){
   a.prototype = new fn;
   a.prototype.constructor = a;
 };
-},{}],30:[function(require,module,exports){
+},{}],32:[function(require,module,exports){
 /**
  * Module dependencies.
  */
@@ -5597,7 +5687,7 @@ function match(el, selector) {
   return false;
 }
 
-},{"component-query":32,"query":32}],31:[function(require,module,exports){
+},{"component-query":34,"query":34}],33:[function(require,module,exports){
 /**
  * Global Names
  */
@@ -5684,7 +5774,7 @@ function prefixed(str) {
   };
 }
 
-},{}],32:[function(require,module,exports){
+},{}],34:[function(require,module,exports){
 function one(selector, el) {
   return el.querySelector(selector);
 }
@@ -5707,7 +5797,7 @@ exports.engine = function(obj){
   return exports;
 };
 
-},{}],33:[function(require,module,exports){
+},{}],35:[function(require,module,exports){
 
 /**
  * toString ref.
@@ -5741,7 +5831,7 @@ module.exports = function(val){
   return typeof val;
 };
 
-},{}],34:[function(require,module,exports){
+},{}],36:[function(require,module,exports){
 
 /**
  * Module dependencies.
@@ -5838,7 +5928,7 @@ function type(el) {
   return name;
 }
 
-},{"type":33}],35:[function(require,module,exports){
+},{"type":35}],37:[function(require,module,exports){
 // This code has been refactored for 140 bytes
 // You can see the original here: https://github.com/twolfson/computedStyle/blob/04cd1da2e30fa45844f95f5cb1ac898e9b9ef050/lib/computedStyle.js
 var computedStyle = function (el, prop, getComputedStyle) {
@@ -5867,7 +5957,7 @@ var computedStyle = function (el, prop, getComputedStyle) {
 
 module.exports = computedStyle;
 
-},{}],36:[function(require,module,exports){
+},{}],38:[function(require,module,exports){
 (function (process){
 /**
  * This is the web browser implementation of `debug()`.
@@ -6066,7 +6156,7 @@ function localstorage() {
 }
 
 }).call(this,require('_process'))
-},{"./debug":37,"_process":52}],37:[function(require,module,exports){
+},{"./debug":39,"_process":52}],39:[function(require,module,exports){
 
 /**
  * This is the common logic for both the Node.js and web browser
@@ -6293,10 +6383,10 @@ function coerce(val) {
   return val;
 }
 
-},{"ms":47}],38:[function(require,module,exports){
+},{"ms":49}],40:[function(require,module,exports){
 module.exports = "<div class=\"confirmation-actions\">\n  <button class=\"cancel\">Cancel</button>\n  <button class=\"ok main\">Ok</button>\n</div>";
 
-},{}],39:[function(require,module,exports){
+},{}],41:[function(require,module,exports){
 /**
  * Module dependencies.
  */
@@ -6452,7 +6542,7 @@ Confirmation.prototype.render = function(options){
   });
 };
 
-},{"./confirmation.html":38,"dialog":40,"event":27,"inherit":29,"query":32}],40:[function(require,module,exports){
+},{"./confirmation.html":40,"dialog":42,"event":29,"inherit":31,"query":34}],42:[function(require,module,exports){
 
 /**
  * Module dependencies.
@@ -6778,10 +6868,10 @@ Dialog.prototype.remove = function(){
   return this;
 };
 
-},{"./template.html":41,"classes":5,"domify":42,"emitter":26,"event":27,"overlay":50,"query":32}],41:[function(require,module,exports){
+},{"./template.html":43,"classes":5,"domify":44,"emitter":28,"event":29,"overlay":50,"query":34}],43:[function(require,module,exports){
 module.exports = "<div class=\"dialog hide\">\r\n  <div class=\"content\">\r\n    <span class=\"title\">Title</span>\r\n    <a href=\"#\" class=\"close\">&times;<em>close</em></a>\r\n    <div class=\"body\">\r\n      <p>Message</p>\r\n    </div>\r\n  </div>\r\n</div>\r\n";
 
-},{}],42:[function(require,module,exports){
+},{}],44:[function(require,module,exports){
 
 /**
  * Expose `parse`.
@@ -6891,11 +6981,11 @@ function parse(html, doc) {
   return fragment;
 }
 
-},{}],43:[function(require,module,exports){
-arguments[4][26][0].apply(exports,arguments)
-},{"dup":26}],44:[function(require,module,exports){
+},{}],45:[function(require,module,exports){
 arguments[4][28][0].apply(exports,arguments)
-},{"dup":28}],45:[function(require,module,exports){
+},{"dup":28}],46:[function(require,module,exports){
+arguments[4][30][0].apply(exports,arguments)
+},{"dup":30}],47:[function(require,module,exports){
 // Load in dependencies
 var computedStyle = require('computed-style');
 
@@ -6981,7 +7071,7 @@ function lineHeight(node) {
 
 // Export lineHeight
 module.exports = lineHeight;
-},{"computed-style":35}],46:[function(require,module,exports){
+},{"computed-style":37}],48:[function(require,module,exports){
 'use strict';
 
 var proto = Element.prototype;
@@ -7011,7 +7101,7 @@ function match(el, selector) {
   }
   return false;
 }
-},{}],47:[function(require,module,exports){
+},{}],49:[function(require,module,exports){
 /**
  * Helpers.
  */
@@ -7165,96 +7255,6 @@ function plural(ms, n, name) {
   return Math.ceil(ms / n) + ' ' + name + 's';
 }
 
-},{}],48:[function(require,module,exports){
-'use strict';
-
-// modified from https://github.com/es-shims/es5-shim
-var has = Object.prototype.hasOwnProperty;
-var toStr = Object.prototype.toString;
-var isArgs = require('./isArguments');
-var hasDontEnumBug = !({ 'toString': null }).propertyIsEnumerable('toString');
-var hasProtoEnumBug = function () {}.propertyIsEnumerable('prototype');
-var dontEnums = [
-	'toString',
-	'toLocaleString',
-	'valueOf',
-	'hasOwnProperty',
-	'isPrototypeOf',
-	'propertyIsEnumerable',
-	'constructor'
-];
-
-var keysShim = function keys(object) {
-	var isObject = object !== null && typeof object === 'object';
-	var isFunction = toStr.call(object) === '[object Function]';
-	var isArguments = isArgs(object);
-	var isString = isObject && toStr.call(object) === '[object String]';
-	var theKeys = [];
-
-	if (!isObject && !isFunction && !isArguments) {
-		throw new TypeError('Object.keys called on a non-object');
-	}
-
-	var skipProto = hasProtoEnumBug && isFunction;
-	if (isString && object.length > 0 && !has.call(object, 0)) {
-		for (var i = 0; i < object.length; ++i) {
-			theKeys.push(String(i));
-		}
-	}
-
-	if (isArguments && object.length > 0) {
-		for (var j = 0; j < object.length; ++j) {
-			theKeys.push(String(j));
-		}
-	} else {
-		for (var name in object) {
-			if (!(skipProto && name === 'prototype') && has.call(object, name)) {
-				theKeys.push(String(name));
-			}
-		}
-	}
-
-	if (hasDontEnumBug) {
-		var ctor = object.constructor;
-		var skipConstructor = ctor && ctor.prototype === object;
-
-		for (var k = 0; k < dontEnums.length; ++k) {
-			if (!(skipConstructor && dontEnums[k] === 'constructor') && has.call(object, dontEnums[k])) {
-				theKeys.push(dontEnums[k]);
-			}
-		}
-	}
-	return theKeys;
-};
-
-keysShim.shim = function shimObjectKeys() {
-	if (!Object.keys) {
-		Object.keys = keysShim;
-	}
-	return Object.keys || keysShim;
-};
-
-module.exports = keysShim;
-
-},{"./isArguments":49}],49:[function(require,module,exports){
-'use strict';
-
-var toStr = Object.prototype.toString;
-
-module.exports = function isArguments(value) {
-	var str = toStr.call(value);
-	var isArgs = str === '[object Arguments]';
-	if (!isArgs) {
-		isArgs = str !== '[object Array]'
-			&& value !== null
-			&& typeof value === 'object'
-			&& typeof value.length === 'number'
-			&& value.length >= 0
-			&& toStr.call(value.callee) === '[object Function]';
-	}
-	return isArgs;
-};
-
 },{}],50:[function(require,module,exports){
 
 /**
@@ -7380,7 +7380,7 @@ Overlay.prototype.remove = function(){
 };
 
 
-},{"./template.html":51,"classes":5,"domify":42,"emitter":43,"event":27}],51:[function(require,module,exports){
+},{"./template.html":51,"classes":5,"domify":44,"emitter":45,"event":29}],51:[function(require,module,exports){
 module.exports = "<div class=\"overlay hidden\"></div>\r\n";
 
 },{}],52:[function(require,module,exports){
@@ -7828,7 +7828,7 @@ function stripNested (prop, str, val) {
   });
 }
 
-},{"component-props":31,"props":31}],57:[function(require,module,exports){
+},{"component-props":33,"props":33}],57:[function(require,module,exports){
 
 /**
  * Expose `toNoCase`.
@@ -8042,7 +8042,7 @@ function trunkata(root, options) {
 
 // Export trunkata
 module.exports = trunkata;
-},{"line-height":45}],61:[function(require,module,exports){
+},{"line-height":47}],61:[function(require,module,exports){
 
 /**
  * Check if `el` is within the document.
@@ -8095,7 +8095,7 @@ module.exports = function(type, el, selector, len){
   return ret;
 }
 
-},{"matches-selector":46}],63:[function(require,module,exports){
+},{"matches-selector":48}],63:[function(require,module,exports){
 module.exports = "<li data-comment-id=\"<%- comment.id %>\" class=\"comment-obj <%- comment.type %>\">\n  <div class=\"comment-body\">\n    <div class=\"author-avatar\">\n      <img src=\"<%- comment.authorAvatarUrl %>\">\n      <% if (voting && currentUser && comment.authorId !== currentUser.id){ %>\n        <div class=\"voting\">\n          <span class=\"votes\">0</span>\n          <a href=\"#\" class=\"action-link upvote\", title=\"Upvote\"><i class=\"icon-angle-up\"></i></a>\n          <a href=\"#\" class=\"action-link downvote\", title=\"Downvote\"><i class=\"icon-angle-down\"></i></a>\n        </div>\n      <% } %>\n    </div>\n    <div class=\"right-of-avatar\">\n      <% if (comment.authorUrl) { %>\n        <a class=\"author-name\" href=\"<%- comment.authorUrl %>\">\n          <%- comment.authorName %>\n        </a>\n      <% } else { %>\n        <p class=\"author-name\">\n          <%- comment.authorName %>\n          <% if (comment.createdAt) { %>\n            <small class=\"ago\" data-time=\"<%- comment.createdAt %>\"></small>\n          <% } %>\n        </p>\n      <% } %>\n      <div class=\"comment-view-wrapper\">\n        <p class=\"comment\">\n          <%- comment.comment %>\n        </p>\n        <div class=\"comment-actions\">\n          <% if (currentUser && comment.authorId === currentUser.id){ %>\n            <a href=\"#\" class=\"action-link edit\">Edit</a>\n          <% } %>\n          <% if (currentUser && (currentUser.isAdmin || comment.authorId === currentUser.id)){ %>\n            <a href=\"#\" class=\"action-link delete\">Delete</a>\n          <% } %>\n        </div>\n      </div>\n      <div class=\"comment-form-wrapper hide\">\n        <p class=\"error\"></p>\n        <input type=\"hidden\" class=\"comment-id\" value=\"<%- comment.id %>\">\n        <input type=\"text\" class=\"comment-box\" value=\"<%- comment.comment %>\">\n        <div class=\"comment-actions\">\n          <a href=\"#\" class=\"action-link post\">Save</a>\n          <a href=\"#\" class=\"action-link cancel-edit\">Cancel</a>\n        </div>\n      </div>\n    </div>\n  </div>\n</li>\n";
 
 },{}],64:[function(require,module,exports){

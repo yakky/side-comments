@@ -2,8 +2,7 @@
   transition: all 0.22s ease;
 }
 .side-comments-open {
-  -webkit-transform: translate(-220px, 0);
-          transform: translate(-220px, 0);
+  transform: translate(-220px, 0);
 }
 .commentable-section {
   box-sizing: border-box;
@@ -59,8 +58,7 @@
   padding-bottom: 120px;
 }
 .side-comment.active .comments-wrapper {
-  -webkit-animation: fadein 0.2s;
-          animation: fadein 0.2s;
+  animation: fadein 0.2s;
 }
 .side-comment.has-comments .comments-wrapper {
   top: -22px;
@@ -177,8 +175,7 @@
 }
 @media (max-width: 768px) {
   .side-comments-open {
-    -webkit-transform: translate(-220px, 0);
-            transform: translate(-220px, 0);
+    transform: translate(-220px, 0);
   }
   .side-comment .comments-wrapper {
     width: 200px;
