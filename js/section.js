@@ -333,7 +333,7 @@ Section.prototype.readmore = function(ev) {
 
   var commentContainer = closest(ev.target,'li[data-comment-id]');
   var id = commentContainer.getAttribute('data-comment-id');
-  var comment = get(this.comments, 'id === "%id"'.replace('%id', id));
+  var comment = get(this.comments, 'id === %id'.replace('%id', id));
   var commentText = o('p.comment', commentContainer);
 
   commentText.html(comment.text);
